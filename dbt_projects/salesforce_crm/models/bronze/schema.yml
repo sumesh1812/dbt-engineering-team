@@ -1,0 +1,243 @@
+version: 2
+models:
+- name: brz_sf_accounts
+  description: Bronze layer staging of Salesforce Account records with minimal transformation
+    - one row per account with snake_case column names and canonical data types. This
+    model performs basic type casting and trimming while preserving all source data
+    for downstream processing.
+  columns:
+  - name: account_id
+    description: Salesforce Account ID serving as the unique identifier for each account
+      record. This is the trimmed 18-character case-safe Salesforce ID used as the
+      primary key for all downstream joins and analysis.
+    tests:
+    - not_null
+    - unique
+  - name: account_name
+    description: Name of the account or company as recorded in Salesforce with whitespace
+      trimmed. This is the primary display name used across all reporting and analytics.
+    tests:
+    - not_null
+  - name: account_type
+    description: Classification of the account type such as Customer, Prospect, or
+      Partner. Null values are preserved in bronze layer and handled downstream in
+      silver layer transformations.
+  - name: industry
+    description: Industry vertical classification assigned to the account such as
+      Technology, Healthcare, or Financial Services. Used for segmentation and market
+      analysis reporting.
+  - name: annual_revenue
+    description: Reported or estimated annual revenue for the account in USD currency
+      cast to decimal format with 18 digits and 2 decimal places. Null values are
+      preserved for accounts without revenue data.
+  - name: number_of_employees
+    description: Total employee headcount for the organization cast to integer. This
+      metric is used to derive company size bands and for firmographic segmentation.
+  - name: phone
+    description: Primary contact phone number for the account with whitespace trimmed.
+      Format may vary by country and is not normalized in bronze layer.
+  - name: website
+    description: Company website URL for the account. May be used for domain-based
+      enrichment and company identification.
+  - name: billing_city
+    description: City name from the billing address. This geography field is used
+      for regional analysis and territory assignment.
+  - name: billing_country
+    description: Country name from the billing address. This is the primary geography
+      dimension for international sales reporting.
+  - name: owner_id
+    description: Salesforce User ID of the account owner responsible for this account.
+      Links to Salesforce User object for sales rep assignment and quota tracking.
+    tests:
+    - not_null
+  - name: created_at
+    description: Timestamp when this account record was originally created in Salesforce,
+      cast to timestamp with timezone for consistent temporal analysis.
+    tests:
+    - not_null
+  - name: modified_at
+    description: Timestamp when this account record was last modified in Salesforce,
+      cast to timestamp with timezone. Used for incremental loading and change detection.
+    tests:
+    - not_null
+  - name: _loaded_at
+    description: Technical audit column capturing the timestamp when this record was
+      loaded into the bronze layer data warehouse table. Used for data quality monitoring
+      and debugging.
+    tests:
+    - not_null
+  - name: _source_table
+    description: Fully qualified name of the source table from which this record originated.
+      Technical audit column used for lineage tracking and troubleshooting data issues.
+    tests:
+    - not_null
+- name: brz_sf_contacts
+  description: Bronze layer staging of Salesforce Contact records with minimal transformation
+    - one row per contact with snake_case column names and canonical data types. Email
+    addresses are lowercased for consistency while all other fields preserve source
+    data quality for downstream processing.
+  columns:
+  - name: contact_id
+    description: Salesforce Contact ID serving as the unique identifier for each contact
+      record. This is the trimmed 18-character case-safe Salesforce ID used as the
+      primary key for all downstream joins and deduplication logic.
+    tests:
+    - not_null
+    - unique
+  - name: first_name
+    description: First name of the contact person with whitespace trimmed. May be
+      null for contacts where only last name was captured.
+  - name: last_name
+    description: Last name of the contact person with whitespace trimmed. This is
+      a required field in Salesforce and forms the basis of the full name display.
+    tests:
+    - not_null
+  - name: email
+    description: Email address for the contact lowercased for consistency and deduplication.
+      Used as a key matching field for contact enrichment and marketing automation
+      integration.
+  - name: phone
+    description: Phone number for the contact with whitespace trimmed. Format varies
+      by country and is not normalized in bronze layer.
+  - name: title
+    description: Job title or role of the contact at their organization such as VP
+      of Sales or Software Engineer. Used for contact segmentation and persona analysis.
+  - name: department
+    description: Department name where the contact works such as Engineering, Marketing,
+      or Sales. Used for organizational hierarchy analysis and buying center mapping.
+  - name: account_id
+    description: Foreign key reference to the parent account record. Null values indicate
+      orphaned contacts not associated with any account, which are handled downstream.
+  - name: lead_source
+    description: Original source indicating how this contact was acquired such as
+      Web, Referral, Event, or Partner. Critical dimension for marketing attribution
+      and ROI analysis.
+  - name: mailing_city
+    description: City component of the contact's mailing address. Used for event planning
+      and regional contact segmentation.
+  - name: mailing_country
+    description: Country component of the contact's mailing address. Primary geography
+      field for international contact segmentation and GDPR compliance.
+  - name: owner_id
+    description: Salesforce User ID of the contact owner responsible for managing
+      this contact. Links to sales rep for activity tracking and contact assignment.
+    tests:
+    - not_null
+  - name: created_at
+    description: Timestamp when this contact record was originally created in Salesforce,
+      cast to timestamp with timezone. Used for contact age analysis and cohort reporting.
+    tests:
+    - not_null
+  - name: modified_at
+    description: Timestamp when this contact record was last modified in Salesforce,
+      cast to timestamp with timezone. Used for incremental loads and contact engagement
+      scoring.
+    tests:
+    - not_null
+  - name: _loaded_at
+    description: Technical audit column capturing the timestamp when this record was
+      loaded into the bronze layer data warehouse table. Used for data freshness monitoring
+      and load reconciliation.
+    tests:
+    - not_null
+  - name: _source_table
+    description: Fully qualified name of the source table from which this record originated.
+      Technical audit column enabling source-to-target lineage tracking and data governance.
+    tests:
+    - not_null
+- name: brz_sf_opportunities
+  description: Bronze layer staging of Salesforce Opportunity records with minimal
+    transformation - one row per opportunity with snake_case column names and canonical
+    data types. Amount is coalesced to 0 to enable downstream numeric aggregations
+    while preserving all other source data quality characteristics.
+  columns:
+  - name: opportunity_id
+    description: Salesforce Opportunity ID serving as the unique identifier for each
+      opportunity record. This is the trimmed 18-character case-safe Salesforce ID
+      used as the primary key for all sales pipeline analysis and forecasting.
+    tests:
+    - not_null
+    - unique
+  - name: opportunity_name
+    description: Name or title describing the sales opportunity or deal with whitespace
+      trimmed. This is the primary display name used in pipeline reports and sales
+      dashboards.
+    tests:
+    - not_null
+  - name: account_id
+    description: Foreign key reference to the related account record. Null values
+      indicate opportunities not yet associated with an account, typically early stage
+      leads.
+  - name: amount
+    description: Deal value in USD currency coalesced to 0 for null values and cast
+      to decimal with 18 digits and 2 decimal places. This is the primary revenue
+      metric for pipeline value and forecast calculations.
+    tests:
+    - not_null
+  - name: stage_name
+    description: Current pipeline stage of the opportunity such as Prospecting, Qualification,
+      Negotiation, or Closed Won. This dimension drives all pipeline stage analysis
+      and conversion funnel reporting.
+    tests:
+    - not_null
+  - name: probability
+    description: Win probability percentage ranging from 0 to 100 associated with
+      the current stage. Used for weighted pipeline calculations and statistical forecasting
+      models.
+  - name: forecast_category
+    description: Forecast bucket classification such as Pipeline, Best Case, Commit,
+      or Omitted. This categorization aligns with sales methodology and drives executive
+      forecast roll-ups.
+  - name: opportunity_type
+    description: Type of opportunity such as New Business, Renewal, Upsell, or Cross-sell.
+      Critical dimension for bookings classification and sales motion analysis.
+  - name: lead_source
+    description: Original source from which this opportunity originated such as Web,
+      Referral, or Event. Used for marketing source attribution and channel effectiveness
+      analysis.
+  - name: close_date
+    description: Expected or actual close date for the opportunity cast to date type.
+      This is the primary temporal dimension for time-based pipeline snapshots and
+      quarterly forecast accuracy analysis.
+    tests:
+    - not_null
+  - name: is_closed
+    description: Boolean flag indicating whether the opportunity has reached a closed
+      stage (either won or lost). Used to segment open pipeline from historical closed
+      opportunities.
+    tests:
+    - not_null
+  - name: is_won
+    description: Boolean flag indicating whether the opportunity was closed as won.
+      Primary flag for revenue recognition and win rate calculation.
+    tests:
+    - not_null
+  - name: owner_id
+    description: Salesforce User ID of the opportunity owner, typically the sales
+      representative responsible for closing the deal. Used for sales rep quota tracking
+      and performance analysis.
+    tests:
+    - not_null
+  - name: created_at
+    description: Timestamp when this opportunity record was originally created in
+      Salesforce, cast to timestamp with timezone. Used to calculate opportunity age
+      and velocity metrics.
+    tests:
+    - not_null
+  - name: modified_at
+    description: Timestamp when this opportunity record was last modified in Salesforce,
+      cast to timestamp with timezone. Used for incremental loading and opportunity
+      activity monitoring.
+    tests:
+    - not_null
+  - name: _loaded_at
+    description: Technical audit column capturing the timestamp when this record was
+      loaded into the bronze layer data warehouse table. Used for data pipeline monitoring
+      and SLA compliance tracking.
+    tests:
+    - not_null
+  - name: _source_table
+    description: Fully qualified name of the source table from which this record originated.
+      Technical audit column supporting end-to-end data lineage and impact analysis.
+    tests:
+    - not_null

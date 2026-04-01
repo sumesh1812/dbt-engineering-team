@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: stg_accounts
+    description: Cleaned and conformed account entity with derived bands and standardized null handling. This silver layer model deduplicates accounts, standardizes null values to business-friendly defaults, and enriches records with employee and revenue size bands for segmentation analysis. One row per unique account_id.
+    config:
+      materialized: table
+    columns:
+      - name: account_id
+        description: Salesforce Account ID validated and serving as primary key. This identifier is guaranteed unique after deduplication logic removes any duplicate account records based on most recent modification timestamp.
+        tests:
+          - not_null
+          - unique
+      - name: account_name
+        description: Name of the account or company, cleaned and trimmed. This is the authoritative display name used across all downstream gold layer marts and business intelligence dashboards.
+        tests:
+          - not_null
+      - name: account_type
+        description: Account type classification defaulting to 'Unclassified' when null. Standardized values enable consistent segmentation reporting and eliminate null handling in downstream analytics queries.
+        tests:
+          - not_null
+      - name: industry
+        description: Industry vertical classification defaulting to 'Unknown' when null. Null standardization ensures all accounts can be grouped by industry without special null handling in reporting tools.
+        tests:
+          - not_null
+      - name: annual_revenue
+        description: Annual revenue in USD defaulting to 0 when null. Null coalescing enables sum and average aggregations without null propagation issues in downstream revenue analysis.
+        tests:
+          - not_null
+      - name: number_of_employees
+        description: Employee headcount defaulting to 0 when null. Null

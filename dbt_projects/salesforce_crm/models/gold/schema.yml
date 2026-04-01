@@ -1,0 +1,125 @@
+version: 2
+
+models:
+  - name: dim_accounts
+    description: Business-ready dimension table of all accounts enriched with lifetime opportunity metrics and customer health indicators for executive reporting and account segmentation analysis
+    config:
+      materialized: table
+      tags: ['gold', 'mart']
+    columns:
+      - name: account_id
+        description: Unique identifier for the account serving as primary key
+        tests:
+          - not_null
+          - unique
+      - name: account_name
+        description: Name of the account or company
+      - name: account_type
+        description: Classification of the account type
+      - name: industry_name
+        description: Industry vertical or sector the account operates in
+      - name: annual_revenue_usd
+        description: Annual revenue reported by the account in US dollars
+      - name: employee_count
+        description: Total number of employees at the account
+      - name: employee_size_band
+        description: Categorical size band based on employee count Small Medium or Large
+      - name: revenue_size_band
+        description: Categorical size band based on annual revenue Under 1M to Over 100M
+      - name: phone_number
+        description: Primary contact phone number for the account
+      - name: website_url
+        description: Company website URL
+      - name: city
+        description: Billing address city location
+      - name: country
+        description: Billing address country location
+      - name: account_owner_id
+        description: Identifier of the sales rep or user who owns this account
+      - name: account_created_at
+        description: Timestamp when the account was created in Salesforce
+      - name: account_modified_at
+        description: Timestamp when the account was last modified in Salesforce
+      - name: lifetime_opportunity_count
+        description: Total number of opportunities ever associated with this account
+      - name: current_open_opportunities
+        description: Number of opportunities currently open and in the sales pipeline
+      - name: lifetime_won_count
+        description: Total number of opportunities won for this account
+      - name: lifetime_lost_count
+        description: Total number of opportunities lost for this account
+      - name: current_pipeline_value_usd
+        description: Sum of opportunity values currently open in the pipeline in US dollars
+      - name: lifetime_won_revenue_usd
+        description: Total revenue generated from won opportunities in US dollars
+      - name: lifetime_lost_value_usd
+        description: Total value of lost opportunities in US dollars
+      - name: average_deal_size_usd
+        description: Average deal size for closed opportunities in US dollars
+      - name: most_recent_win_date
+        description: Date of the most recently won opportunity for this account
+      - name: next_expected_close_date
+        description: Earliest expected close date among currently open opportunities
+      - name: average_days_to_close
+        description: Average number of days from opportunity creation to close
+      - name: customer_status
+        description: Derived status of the account Customer Prospect or Inactive based on opportunity history
+
+  - name: dim_contacts
+    description: Business-ready dimension table of all contacts enriched with parent account details for relationship mapping and contact segmentation analysis
+    config:
+      materialized: table
+      tags: ['gold', 'mart']
+    columns:
+      - name: contact_id
+        description: Unique identifier for the contact serving as primary key
+        tests:
+          - not_null
+          - unique
+      - name: parent_account_id
+        description: Identifier linking this contact to its parent account
+      - name: parent_account_name
+        description: Name of the parent account this contact belongs to
+      - name: parent_account_type
+        description: Type classification of the parent account
+      - name: parent_industry
+        description: Industry vertical of the parent account
+      - name: first_name
+        description: First name of the contact
+      - name: last_name
+        description: Last name of the contact
+      - name: contact_full_name
+        description: Full name of the contact combining first and last names
+      - name: email_address
+        description: Email address of the contact
+      - name: email_domain
+        description: Email domain extracted from the contact email address
+      - name: phone_number
+        description: Phone number for the contact
+      - name: job_title
+        description: Job title or role of the contact
+      - name: department_name
+        description: Department the contact works in
+      - name: original_lead_source
+        description: Source that originally generated this contact as a lead
+      - name: city
+        description: Mailing address city of the contact
+      - name: country
+        description: Mailing address country of the contact
+      - name: contact_owner_id
+        description: Identifier of the sales rep or user who owns this contact
+      - name: contact_created_at
+        description: Timestamp when the contact was created in Salesforce
+      - name: contact_modified_at
+        description: Timestamp when the contact was last modified in Salesforce
+      - name: has_parent_account
+        description: Boolean flag indicating whether this contact is associated with a parent account
+
+  - name: fct_opportunities
+    description: Comprehensive fact table of all opportunities with current status enriched with parent account details for sales pipeline analysis and forecasting
+    config:
+      materialized: table
+      tags: ['gold', 'mart']
+    columns:
+      - name: opportunity_id
+        description: Unique

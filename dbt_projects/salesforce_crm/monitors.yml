@@ -1,0 +1,441 @@
+version: 2
+
+monitors:
+  - name: brz_sf_accounts_volume
+    model: ref('brz_sf_accounts')
+    description: Monitor daily row count for bronze accounts table to detect ingestion anomalies
+    type: volume
+    config:
+      row_count:
+        min_threshold: 100
+        max_threshold: 1000000
+        warn_on_zero: true
+      comparison:
+        type: day_over_day
+        warn_threshold: 0.20
+        error_threshold: 0.50
+
+  - name: brz_sf_accounts_freshness
+    model: ref('brz_sf_accounts')
+    description: Monitor data freshness for bronze accounts using last modified timestamp
+    type: freshness
+    config:
+      timestamp_column: LASTMODIFIEDDATE
+      warn_after:
+        count: 24
+        period: hour
+      error_after:
+        count: 48
+        period: hour
+
+  - name: brz_sf_accounts_schema
+    model: ref('brz_sf_accounts')
+    description: Detect schema changes in bronze accounts table
+    type: schema_change
+    config:
+      columns:
+        - ID
+        - NAME
+        - TYPE
+        - INDUSTRY
+        - ANNUALREVENUE
+        - NUMBEROFEMPLOYEES
+        - PHONE
+        - WEBSITE
+        - BILLINGCITY
+        - BILLINGCOUNTRY
+        - OWNERID
+        - CREATEDDATE
+        - LASTMODIFIEDDATE
+      on_column_added: warn
+      on_column_removed: error
+      on_type_changed: error
+
+  - name: brz_sf_accounts_distribution
+    model: ref('brz_sf_accounts')
+    description: Monitor distribution drift for annual revenue in bronze accounts
+    type: distribution
+    config:
+      column: ANNUALREVENUE
+      method: kolmogorov_smirnov
+      warn_threshold: 0.10
+      error_threshold: 0.25
+      lookback_days: 7
+
+  - name: brz_sf_contacts_volume
+    model: ref('brz_sf_contacts')
+    description: Monitor daily row count for bronze contacts table to detect ingestion anomalies
+    type: volume
+    config:
+      row_count:
+        min_threshold: 500
+        max_threshold: 5000000
+        warn_on_zero: true
+      comparison:
+        type: day_over_day
+        warn_threshold: 0.20
+        error_threshold: 0.50
+
+  - name: brz_sf_contacts_freshness
+    model: ref('brz_sf_contacts')
+    description: Monitor data freshness for bronze contacts using last modified timestamp
+    type: freshness
+    config:
+      timestamp_column: LASTMODIFIEDDATE
+      warn_after:
+        count: 24
+        period: hour
+      error_after:
+        count: 48
+        period: hour
+
+  - name: brz_sf_contacts_schema
+    model: ref('brz_sf_contacts')
+    description: Detect schema changes in bronze contacts table
+    type: schema_change
+    config:
+      columns:
+        - ID
+        - FIRSTNAME
+        - LASTNAME
+        - EMAIL
+        - PHONE
+        - TITLE
+        - DEPARTMENT
+        - ACCOUNTID
+        - LEADSOURCE
+        - MAILINGCITY
+        - MAILINGCOUNTRY
+        - OWNERID
+        - CREATEDDATE
+        - LASTMODIFIEDDATE
+      on_column_added: warn
+      on_column_removed: error
+      on_type_changed: error
+
+  - name: brz_sf_contacts_distribution
+    model: ref('brz_sf_contacts')
+    description: Monitor distribution drift for lead source in bronze contacts
+    type: distribution
+    config:
+      column: LEADSOURCE
+      method: chi_squared
+      warn_threshold: 0.10
+      error_threshold: 0.25
+      lookback_days: 7
+
+  - name: brz_sf_opportunities_volume
+    model: ref('brz_sf_opportunities')
+    description: Monitor daily row count for bronze opportunities table to detect ingestion anomalies
+    type: volume
+    config:
+      row_count:
+        min_threshold: 200
+        max_threshold: 2000000
+        warn_on_zero: true
+      comparison:
+        type: day_over_day
+        warn_threshold: 0.20
+        error_threshold: 0.50
+
+  - name: brz_sf_opportunities_freshness
+    model: ref('brz_sf_opportunities')
+    description: Monitor data freshness for bronze opportunities using last modified timestamp
+    type: freshness
+    config:
+      timestamp_column: LASTMODIFIEDDATE
+      warn_after:
+        count: 24
+        period: hour
+      error_after:
+        count: 48
+        period: hour
+
+  - name: brz_sf_opportunities_schema
+    model: ref('brz_sf_opportunities')
+    description: Detect schema changes in bronze opportunities table
+    type: schema_change
+    config:
+      columns:
+        - ID
+        - NAME
+        - ACCOUNTID
+        - AMOUNT
+        - STAGENAME
+        - PROBABILITY
+        - FORECASTCATEGORY
+        - TYPE
+        - LEADSOURCE
+        - CLOSEDATE
+        - ISCLOSED
+        - ISWON
+        - OWNERID
+        - CREATEDDATE
+        - LASTMODIFIEDDATE
+      on_column_added: warn
+      on_column_removed: error
+      on_type_changed: error
+
+  - name: brz_sf_opportunities_distribution
+    model: ref('brz_sf_opportunities')
+    description: Monitor distribution drift for opportunity amounts in bronze opportunities
+    type: distribution
+    config:
+      column: AMOUNT
+      method: kolmogorov_smirnov
+      warn_threshold: 0.10
+      error_threshold: 0.25
+      lookback_days: 7
+
+  - name: stg_accounts_volume
+    model: ref('stg_accounts')
+    description: Monitor silver accounts table row count for transformation pipeline health
+    type: volume
+    config:
+      row_count:
+        min_threshold: 100
+        max_threshold: 1000000
+        warn_on_zero: true
+      comparison:
+        type: day_over_day
+        warn_threshold: 0.20
+        error_threshold: 0.50
+
+  - name: stg_accounts_freshness
+    model: ref('stg_accounts')
+    description: Monitor silver accounts transformation lag from bronze
+    type: freshness
+    config:
+      timestamp_column: modified_at
+      warn_after:
+        count: 2
+        period: hour
+      error_after:
+        count: 6
+        period: hour
+
+  - name: stg_contacts_volume
+    model: ref('stg_contacts')
+    description: Monitor silver contacts table row count for transformation pipeline health
+    type: volume
+    config:
+      row_count:
+        min_threshold: 500
+        max_threshold: 5000000
+        warn_on_zero: true
+      comparison:
+        type: day_over_day
+        warn_threshold: 0.20
+        error_threshold: 0.50
+
+  - name: stg_contacts_freshness
+    model: ref('stg_contacts')
+    description: Monitor silver contacts transformation lag from bronze
+    type: freshness
+    config:
+      timestamp_column: modified_at
+      warn_after:
+        count: 2
+        period: hour
+      error_after:
+        count: 6
+        period: hour
+
+  - name: stg_opportunities_volume
+    model: ref('stg_opportunities')
+    description: Monitor silver opportunities table row count for transformation pipeline health
+    type: volume
+    config:
+      row_count:
+        min_threshold: 200
+        max_threshold: 2000000
+        warn_on_zero: true
+      comparison:
+        type: day_over_day
+        warn_threshold: 0.20
+        error_threshold: 0.50
+
+  - name: stg_opportunities_freshness
+    model: ref('stg_opportunities')
+    description: Monitor silver opportunities transformation lag from bronze
+    type: freshness
+    config:
+      timestamp_column: modified_at
+      warn_after:
+        count: 2
+        period: hour
+      error_after:
+        count: 6
+        period: hour
+
+  - name: stg_opportunities_distribution
+    model: ref('stg_opportunities')
+    description: Monitor opportunity amount distribution for anomaly detection
+    type: distribution
+    config:
+      column: amount
+      method: kolmogorov_smirnov
+      warn_threshold: 0.15
+      error_threshold: 0.30
+      lookback_days: 14
+
+  - name: dim_accounts_volume
+    model: ref('dim_accounts')
+    description: Monitor gold dimension table accounts for completeness
+    type: volume
+    config:
+      row_count:
+        min_threshold: 100
+        max_threshold: 1000000
+        warn_on_zero: true
+      comparison:
+        type: day_over_day
+        warn_threshold: 0.15
+        error_threshold: 0.40
+
+  - name: dim_accounts_freshness
+    model: ref('dim_accounts')
+    description: Monitor gold accounts dimension freshness
+    type: freshness
+    config:
+      timestamp_column: account_modified_at
+      warn_after:
+        count: 4
+        period: hour
+      error_after:
+        count: 12
+        period: hour
+
+  - name: dim_contacts_volume
+    model: ref('dim_contacts')
+    description: Monitor gold dimension table contacts for completeness
+    type: volume
+    config:
+      row_count:
+        min_threshold: 500
+        max_threshold: 5000000
+        warn_on_zero: true
+      comparison:
+        type: day_over_day
+        warn_threshold: 0.15
+        error_threshold: 0.40
+
+  - name: dim_contacts_freshness
+    model: ref('dim_contacts')
+    description: Monitor gold contacts dimension freshness
+    type: freshness
+    config:
+      timestamp_column: contact_modified_at
+      warn_after:
+        count: 4
+        period: hour
+      error_after:
+        count: 12
+        period: hour
+
+  - name: fct_opportunities_volume
+    model: ref('fct_opportunities')
+    description: Monitor gold opportunities fact table for completeness
+    type: volume
+    config:
+      row_count:
+        min_threshold: 200
+        max_threshold: 2000000
+        warn_on_zero: true
+      comparison:
+        type: day_over_day
+        warn_threshold: 0.15
+        error_threshold: 0.40
+
+  - name: fct_opportunities_freshness
+    model: ref('fct_opportunities')
+    description: Monitor gold opportunities fact table freshness
+    type: freshness
+    config:
+      timestamp_column: opportunity_modified_at
+      warn_after:
+        count: 4
+        period: hour
+      error_after:
+        count: 12
+        period: hour
+
+  - name: fct_opportunities_distribution
+    model: ref('fct_opportunities')
+    description: Monitor opportunity value distribution in gold fact table
+    type: distribution
+    config:
+      column: opportunity_value_usd
+      method: kolmogorov_smirnov
+      warn_threshold: 0.15
+      error_threshold: 0.30
+      lookback_days: 14
+
+  - name: fct_sales_pipeline_volume
+    model: ref('fct_sales_pipeline')
+    description: Monitor gold sales pipeline fact table for active opportunities
+    type: volume
+    config:
+      row_count:
+        min_threshold: 50
+        max_threshold: 500000
+        warn_on_zero: false
+      comparison:
+        type: day_over_day
+        warn_threshold: 0.25
+        error_threshold: 0.60
+
+  - name: fct_sales_pipeline_freshness
+    model: ref('fct_sales_pipeline')
+    description: Monitor gold sales pipeline fact table freshness
+    type: freshness
+    config:
+      timestamp_column: opportunity_created_at
+      warn_after:
+        count: 4
+        period: hour
+      error_after:
+        count: 12
+        period: hour
+
+  - name: fct_sales_performance_volume
+    model: ref('fct_sales_performance')
+    description: Monitor gold sales performance fact table for closed deals
+    type: volume
+    config:
+      row_count:
+        min_threshold: 10
+        max_threshold: 100000
+        warn_on_zero: false
+      comparison:
+        type: week_over_week
+        warn_threshold: 0.30
+        error_threshold: 0.70
+
+  - name: fct_monthly_revenue_volume
+    model: ref('fct_monthly_revenue')
+    description: Monitor gold monthly revenue fact table for won revenue aggregates
+    type: volume
+    config:
+      row_count:
+        min_threshold: 5
+        max_threshold: 50000
+        warn_on_zero: false
+      comparison:
+        type: month_over_month
+        warn_threshold: 0.35
+        error_threshold: 0.80
+
+  - name: int_account_opportunity_summary_volume
+    model: ref('int_account_opportunity_summary')
+    description: Monitor intermediate account opportunity summary for completeness
+    type: volume
+    config:
+      row_count:
+        min_threshold: 100
+        max_threshold: 1000000
+        warn_on_zero: true
+      comparison:
+        type: day_over_day
+        warn_threshold: 0.15
+        error_threshold: 0.40
