@@ -1,0 +1,79 @@
+version: 2
+
+alerts:
+  - name: bronze_ingestion_failure_critical
+    description: Critical alert for bronze layer ingestion failures that page on-call engineer
+    monitors:
+      - brz_sf_accounts_freshness
+      - brz_sf_contacts_freshness
+      - brz_sf_opportunities_freshness
+    severity: critical
+    channels:
+      - type: pagerduty
+        integration_key: "{{ env_var('PAGERDUTY_INTEGRATION_KEY') }}"
+        routing_key: salesforce_crm_bronze
+      - type: slack
+        webhook_url: "{{ env_var('SLACK_WEBHOOK_URL_CRITICAL') }}"
+        channel: "#data-alerts-critical"
+        username: "DBT Observability"
+        icon_emoji: ":rotating_light:"
+    conditions:
+      on_error: true
+      on_warn: false
+
+  - name: bronze_volume_anomaly_high
+    description: High severity alert for significant volume changes in bronze layer
+    monitors:
+      - brz_sf_accounts_volume
+      - brz_sf_contacts_volume
+      - brz_sf_opportunities_volume
+    severity: high
+    channels:
+      - type: slack
+        webhook_url: "{{ env_var('SLACK_WEBHOOK_URL_HIGH') }}"
+        channel: "#data-alerts-high"
+        username: "DBT Observability"
+        icon_emoji: ":warning:"
+      - type: email
+        recipients:
+          - "{{ env_var('DATA_ONCALL_EMAIL') }}"
+          - data-engineering@company.com
+    conditions:
+      on_error: true
+      on_warn: false
+
+  - name: bronze_schema_change_warning
+    description: Warning alert for schema changes detected in bronze layer requiring investigation
+    monitors:
+      - brz_sf_accounts_schema
+      - brz_sf_contacts_schema
+      - brz_sf_opportunities_schema
+    severity: medium
+    channels:
+      - type: slack
+        webhook_url: "{{ env_var('SLACK_WEBHOOK_URL_MEDIUM') }}"
+        channel: "#data-alerts-medium"
+        username: "DBT Observability"
+        icon_emoji: ":construction:"
+    conditions:
+      on_error: true
+      on_warn: true
+
+  - name: bronze_distribution_drift
+    description: Alert for statistical distribution drift in bronze layer data
+    monitors:
+      - brz_sf_accounts_distribution
+      - brz_sf_contacts_distribution
+      - brz_sf_opportunities_distribution
+    severity: medium
+    channels:
+      - type: slack
+        webhook_url: "{{ env_var('SLACK_WEBHOOK_URL_MEDIUM') }}"
+        channel: "#data-quality"
+        username: "DBT Observability"
+        icon_emoji: ":chart_with_downwards_trend:"
+    conditions:
+      on_error: true
+      on_warn: true
+
+  - name
