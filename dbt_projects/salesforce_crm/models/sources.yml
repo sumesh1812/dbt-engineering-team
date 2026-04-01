@@ -1,0 +1,112 @@
+version: 2
+
+sources:
+  - name: raw_salesforce
+    description: Raw Salesforce CRM data ingested into the RAW schema. Contains accounts, contacts, and opportunities data refreshed incrementally via LASTMODIFIEDDATE.
+    database: ANALYTICS
+    schema: RAW
+    freshness:
+      warn_after:
+        count: 24
+        period: hour
+      error_after:
+        count: 48
+        period: hour
+    loaded_at_field: LASTMODIFIEDDATE
+
+    tables:
+      - name: SF_ACCOUNTS
+        description: Salesforce Account records representing companies and organizations. One row per Salesforce Account. Primary key is ID.
+        columns:
+          - name: ID
+            description: Salesforce Account ID serving as the primary key for this table.
+          - name: NAME
+            description: Account or company name as entered in Salesforce.
+          - name: INDUSTRY
+            description: Industry classification for the account such as Technology, Healthcare, Finance, etc.
+          - name: TYPE
+            description: Account type categorization such as Customer, Prospect, Partner, or Other.
+          - name: BILLINGCOUNTRY
+            description: Country portion of the billing address for the account.
+          - name: BILLINGCITY
+            description: City portion of the billing address for the account.
+          - name: PHONE
+            description: Primary phone number associated with the account.
+          - name: WEBSITE
+            description: Company website URL for the account.
+          - name: OWNERID
+            description: Salesforce User ID of the user who owns this account record.
+          - name: NUMBEROFEMPLOYEES
+            description: Stated number of employees at the company.
+          - name: ANNUALREVENUE
+            description: Stated annual revenue for the company in base currency.
+          - name: CREATEDDATE
+            description: Timestamp when the account record was created in Salesforce.
+          - name: LASTMODIFIEDDATE
+            description: Timestamp when the account record was last modified in Salesforce.
+
+      - name: SF_CONTACTS
+        description: Salesforce Contact records representing individuals associated with accounts. One row per Salesforce Contact. Primary key is ID with foreign key ACCOUNTID referencing SF_ACCOUNTS.
+        columns:
+          - name: ID
+            description: Salesforce Contact ID serving as the primary key for this table.
+          - name: ACCOUNTID
+            description: Foreign key referencing the SF_ACCOUNTS table ID column.
+          - name: FIRSTNAME
+            description: First name of the contact individual.
+          - name: LASTNAME
+            description: Last name of the contact individual.
+          - name: EMAIL
+            description: Email address for the contact.
+          - name: PHONE
+            description: Phone number for the contact.
+          - name: TITLE
+            description: Job title of the contact at their company.
+          - name: DEPARTMENT
+            description: Department name where the contact works within their organization.
+          - name: MAILINGCITY
+            description: City portion of the mailing address for the contact.
+          - name: MAILINGCOUNTRY
+            description: Country portion of the mailing address for the contact.
+          - name: OWNERID
+            description: Salesforce User ID of the user who owns this contact record.
+          - name: LEADSOURCE
+            description: Original source through which this contact became a lead.
+          - name: CREATEDDATE
+            description: Timestamp when the contact record was created in Salesforce.
+          - name: LASTMODIFIEDDATE
+            description: Timestamp when the contact record was last modified in Salesforce.
+
+      - name: SF_OPPORTUNITIES
+        description: Salesforce Opportunity records representing sales deals and potential revenue. One row per Salesforce Opportunity. Primary key is ID with foreign key ACCOUNTID referencing SF_ACCOUNTS.
+        columns:
+          - name: ID
+            description: Salesforce Opportunity ID serving as the primary key for this table.
+          - name: NAME
+            description: Name or title of the sales opportunity.
+          - name: ACCOUNTID
+            description: Foreign key referencing the SF_ACCOUNTS table ID column.
+          - name: OWNERID
+            description: Salesforce User ID of the user who owns this opportunity record.
+          - name: TYPE
+            description: Opportunity type such as New Business, Renewal, Upsell, or Add-On.
+          - name: STAGENAME
+            description: Current sales stage of the opportunity in the sales process.
+          - name: FORECASTCATEGORY
+            description: Forecast category for pipeline reporting such as Pipeline, Best Case, Commit, or Closed.
+          - name: AMOUNT
+            description: Deal amount or value in base currency.
+          - name: PROBABILITY
+            description: Win probability percentage expressed as a value between 0 and 100.
+          - name: CLOSEDATE
+            description: Expected or actual close date for the opportunity.
+          - name: ISCLOSED
+            description: Boolean flag indicating whether the opportunity has been closed.
+          - name: ISWON
+            description: Boolean flag indicating whether a closed opportunity was won.
+          - name: LEADSOURCE
+            description: Original source through which this opportunity was generated.
+          - name: CREATEDDATE
+            description: Timestamp when the opportunity record was created in Salesforce.
+          - name: LASTMODIFIEDDATE
+            description: Timestamp when the opportunity record was last modified in Salesforce.
