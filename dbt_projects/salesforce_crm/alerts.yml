@@ -1,0 +1,41 @@
+version: 2
+
+alerts:
+  - name: alert_source_freshness_critical
+    description: Critical alert for source freshness violations on raw Salesforce tables indicating data pipeline failure
+    monitors:
+      - source_freshness_raw_salesforce_SF_ACCOUNTS
+      - source_freshness_raw_salesforce_SF_CONTACTS
+      - source_freshness_raw_salesforce_SF_OPPORTUNITIES
+    severity: critical
+    channels:
+      - type: slack
+        webhook_url: "{{ env_var('SLACK_WEBHOOK_URL_CRITICAL') }}"
+        message_template: |
+          :rotating_light: CRITICAL: Source Freshness SLA Breach :rotating_light:
+          Domain: salesforce_crm
+          Source: {{ source_name }}.{{ table_name }}
+          Status: {{ status }}
+          Freshness: {{ hours_since_last_load }} hours
+          Error Threshold: {{ error_threshold_hours }} hours
+          Timestamp: {{ execution_time }}
+          Runbook: https://wiki.company.com/runbooks/salesforce-source-freshness
+      - type: pagerduty
+        integration_key: "{{ env_var('PAGERDUTY_INTEGRATION_KEY') }}"
+        severity: critical
+        dedup_key: "salesforce_crm_source_freshness_{{ source_name }}_{{ table_name }}"
+
+  - name: alert_source_freshness_warning
+    description: Warning alert for source freshness violations approaching SLA breach
+    monitors:
+      - source_freshness_raw_salesforce_SF_ACCOUNTS
+      - source_freshness_raw_salesforce_SF_CONTACTS
+      - source_freshness_raw_salesforce_SF_OPPORTUNITIES
+    severity: warning
+    channels:
+      - type: slack
+        webhook_url: "{{ env_var('SLACK_WEBHOOK_URL_WARNINGS') }}"
+        message_template: |
+          :warning: WARNING: Source Freshness Approaching SLA
+          Domain: salesforce_crm
+          Source: {{ source_name }}.{{ table

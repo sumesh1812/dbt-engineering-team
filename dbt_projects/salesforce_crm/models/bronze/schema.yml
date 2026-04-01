@@ -1,0 +1,212 @@
+version: 2
+models:
+- name: brz_sf_accounts
+  description: Bronze staging model for Salesforce Account records. Contains raw account
+    data with renamed columns following snake_case conventions. One row per Salesforce
+    Account with no business logic applied. This model serves as the foundational
+    layer for downstream account analytics and ensures consistent column naming across
+    the data platform.
+  columns:
+  - name: account_id
+    description: Salesforce Account ID serving as the primary key for this table.
+      Uniquely identifies each account record across the entire Salesforce org. Used
+      as the foreign key in related objects like Contacts and Opportunities.
+    tests:
+    - not_null
+    - unique
+  - name: account_name
+    description: Account or company name as entered in Salesforce without any transformation.
+      This is the primary display name for the account and is used throughout the
+      application for identification. May contain inconsistent capitalization or spacing
+      that will be standardized in silver layer.
+    tests:
+    - not_null
+  - name: industry
+    description: Industry classification for the account such as Technology, Healthcare,
+      Finance, Manufacturing, or Retail. Raw picklist value from source system without
+      standardization. Used for account segmentation and market analysis. May be null
+      for accounts where industry has not been determined.
+  - name: account_type
+    description: Account type categorization such as Customer, Prospect, Partner,
+      Competitor, or Other. Raw picklist value from source system. Used to segment
+      accounts by relationship type for targeted analysis and reporting. Critical
+      field for pipeline and revenue forecasting.
+  - name: billing_country
+    description: Country portion of the billing address for the account. Raw value
+      from source may contain spelling variations and abbreviations. Used for geographic
+      reporting and territory assignment. Important for compliance and tax reporting.
+  - name: billing_city
+    description: City portion of the billing address for the account. Raw value from
+      source without trimming or standardization. Used for detailed geographic analysis
+      and local market segmentation.
+  - name: phone
+    description: Primary phone number associated with the account. Raw value from
+      source may contain various formatting styles including international prefixes,
+      parentheses, dashes, or spaces. Used for outbound calling and contact verification.
+  - name: website
+    description: Company website URL for the account. Raw value from source may include
+      or exclude protocol (http/https) and may contain trailing slashes. Used for
+      account research and enrichment workflows.
+  - name: owner_id
+    description: Salesforce User ID of the user who owns this account record and is
+      responsible for managing the customer relationship. Raw value from source. Used
+      to assign accounts to sales territories and calculate rep-level metrics. Critical
+      for commission and quota tracking.
+  - name: number_of_employees
+    description: Stated number of employees at the company. Raw numeric value from
+      source representing company size. Used for account segmentation and territory
+      assignment. May be null if employee count is unknown or not applicable.
+  - name: annual_revenue
+    description: Stated annual revenue for the company in base currency. Raw numeric
+      value from source representing company size and buying power. Used for account
+      scoring, segmentation, and prioritization. May be null if revenue is unknown
+      or not disclosed.
+  - name: created_at
+    description: Timestamp when the account record was created in Salesforce. Cast
+      from CREATEDDATE source column. Represents the point when this account was first
+      entered into the CRM system. Used for cohort analysis and account age calculations.
+    tests:
+    - not_null
+  - name: updated_at
+    description: Timestamp when the account record was last modified in Salesforce
+      by any user or automated process. Cast from LASTMODIFIEDDATE source column.
+      Used to track data freshness and identify stale records requiring review.
+    tests:
+    - not_null
+  - name: _brz_loaded_at
+    description: Timestamp when this record was loaded into the bronze layer by dbt
+      during the current pipeline execution. Generated at query execution time using
+      current_timestamp function. Used for debugging pipeline issues and tracking
+      data latency between source and warehouse.
+    tests:
+    - not_null
+  - name: _brz_source_table
+    description: Fully qualified name of the source table from which this record originated
+      in the format DATABASE.SCHEMA.TABLE. Static value ANALYTICS.RAW.SF_ACCOUNTS
+      for lineage tracking and data governance. Used to trace data back to its origin
+      for audit and compliance purposes.
+    tests:
+    - not_null
+- name: brz_sf_contacts
+  description: Bronze staging model for Salesforce Contact records. Contains raw contact
+    person data with renamed columns following snake_case conventions. One row per
+    Salesforce Contact with no business logic applied. This model serves as the foundational
+    layer for contact-level analytics and ensures consistent column naming across
+    the data platform.
+  columns:
+  - name: contact_id
+    description: Salesforce Contact ID serving as the primary key for this table.
+      Uniquely identifies each contact person record across the entire Salesforce
+      org. Used as the foreign key in related objects and campaign member tracking.
+    tests:
+    - not_null
+    - unique
+  - name: account_id
+    description: Foreign key referencing the SF_ACCOUNTS table ID column. Links contact
+      to their associated parent account or company. May be null for personal contacts
+      or individuals not yet associated with an organization. Critical for account-level
+      contact aggregations.
+  - name: first_name
+    description: First name or given name of the contact individual. Raw value from
+      source without capitalization standardization. Used for personalization in communications
+      and reporting. May be null for contacts with only a last name recorded.
+  - name: last_name
+    description: Last name or surname of the contact individual. Raw value from source
+      without capitalization standardization. Required field in Salesforce so should
+      always be populated. Used as minimum identifier for contact records.
+    tests:
+    - not_null
+  - name: email
+    description: Email address for the contact. Raw value from source without lowercasing.
+      Salesforce validates basic email format but does not verify deliverability.
+      Used for email campaigns and contact deduplication. May be null if email is
+      unknown.
+  - name: phone
+    description: Primary phone number for the contact. Raw value from source may contain
+      various formatting styles. Used for outbound calling and SMS campaigns. May
+      be null if phone number is unavailable.
+  - name: title
+    description: Job title or role of the contact at their company such as CEO, VP
+      Sales, or Marketing Manager. Raw value from source without standardization.
+      Used for contact segmentation and targeting decision makers. Important for account-based
+      marketing strategies.
+  - name: department
+    description: Department name where the contact works within their organization
+      such as Sales, Marketing, Engineering, or Finance. Raw value from source without
+      standardization. Used for organizational mapping and multi-threading sales strategies.
+  - name: mailing_city
+    description: City portion of the mailing address for the contact. Raw value from
+      source without trimming or standardization. Used for event targeting and regional
+      campaigns. May differ from account billing address for remote employees.
+  - name: mailing_country
+    description: Country portion of the mailing address for the contact. Raw value
+      from source may contain spelling variations. Used for geographic reporting and
+      compliance with data privacy regulations like GDPR. May differ from account
+      billing country.
+  - name: owner_id
+    description: Salesforce User ID of the user who owns this contact record and is
+      responsible for managing the relationship. Raw value from source. Used to assign
+      contacts to sales territories and calculate rep-level activity metrics.
+  - name: lead_source
+    description: Picklist value indicating the original source through which this
+      contact became a lead before conversion. Values include Web, Phone Inquiry,
+      Partner Referral, Purchased List, Trade Show, and custom values. Raw value from
+      source. Used for lead source ROI analysis and marketing attribution.
+  - name: created_at
+    description: Timestamp when the contact record was created in Salesforce. Cast
+      from CREATEDDATE source column. Represents when this contact was first entered
+      into the CRM. Used for cohort analysis and contact age calculations. Important
+      for lead velocity tracking.
+    tests:
+    - not_null
+  - name: updated_at
+    description: Timestamp when the contact record was last modified in Salesforce
+      by any user or automated process. Cast from LASTMODIFIEDDATE source column.
+      Used to identify recently engaged contacts and stale records requiring data
+      hygiene review.
+    tests:
+    - not_null
+  - name: _brz_loaded_at
+    description: Timestamp when this record was loaded into the bronze layer by dbt
+      during the current pipeline execution. Generated at query execution time using
+      current_timestamp function. Used for debugging pipeline issues and tracking
+      data latency between Salesforce and warehouse.
+    tests:
+    - not_null
+  - name: _brz_source_table
+    description: Fully qualified name of the source table from which this record originated
+      in the format DATABASE.SCHEMA.TABLE. Static value ANALYTICS.RAW.SF_CONTACTS
+      for lineage tracking and data governance. Used to trace data back to its origin
+      for audit and compliance purposes.
+    tests:
+    - not_null
+- name: brz_sf_opportunities
+  description: Bronze staging model for Salesforce Opportunity records. Contains raw
+    sales opportunity data with renamed columns following snake_case conventions.
+    One row per Salesforce Opportunity with no business logic applied. This model
+    serves as the foundational layer for pipeline analytics, revenue forecasting,
+    and sales performance reporting. Critical for executive dashboards and sales operations.
+  columns:
+  - name: opportunity_id
+    description: Salesforce Opportunity ID serving as the primary key for this table.
+      Uniquely identifies each sales opportunity record across the entire Salesforce
+      org. Used as the foreign key in related objects like opportunity line items
+      and activities. Critical for revenue tracking and pipeline management.
+    tests:
+    - not_null
+    - unique
+  - name: opportunity_name
+    description: Name or descriptive title of the sales opportunity. Raw value from
+      source typically follows naming convention including account name and product
+      or service. Used for opportunity identification in reports and dashboards. Example
+      format might be "Acme Corp - Enterprise License Renewal".
+    tests:
+    - not_null
+  - name: account_id
+    description: Foreign key referencing the SF_ACCOUNTS table ID column. Links opportunity
+      to the customer account who would purchase. May be null for early-stage opportunities
+      not yet associated with a specific account. Critical for account-level pipeline
+      and revenue rollups.
+  - name: owner_id
+    description: Salesforce User ID of the user who owns this opportunity record and
+      is responsible for closing the deal. Raw value from source.
