@@ -1,0 +1,96 @@
+version: 2
+
+alerts:
+  - name: critical_data_freshness_breach
+    description: Page on-call when source freshness exceeds error threshold
+    monitors:
+      - monitor_sf_accounts_freshness
+      - monitor_sf_contacts_freshness
+      - monitor_sf_opportunities_freshness
+    severity: error
+    notification_channels:
+      - type: pagerduty
+        integration_key: "{{ env_var('PAGERDUTY_INTEGRATION_KEY') }}"
+        routing_key: data_platform_critical
+      - type: slack
+        webhook_url: "{{ env_var('SLACK_WEBHOOK_CRITICAL') }}"
+        channel: "#data-alerts-critical"
+        message_template: |
+          :rotating_light: *CRITICAL: Source Freshness SLA Breach* :rotating_light:
+          *Monitor:* {{ monitor_name }}
+          *Model:* {{ model_name }}
+          *Severity:* {{ severity }}
+          *Details:* {{ failure_message }}
+          *Timestamp:* {{ execution_time }}
+          
+          *Action Required:* Investigate data pipeline immediately
+
+  - name: schema_change_detection
+    description: Alert data engineering on unexpected schema changes
+    monitors:
+      - monitor_sf_accounts_schema_change
+      - monitor_sf_contacts_schema_change
+      - monitor_sf_opportunities_schema_change
+    severity: error
+    notification_channels:
+      - type: slack
+        webhook_url: "{{ env_var('SLACK_WEBHOOK_ENGINEERING') }}"
+        channel: "#data-engineering"
+        message_template: |
+          :warning: *Schema Change Detected* :warning:
+          *Monitor:* {{ monitor_name }}
+          *Model:* {{ model_name }}
+          *Test Failed:* {{ test_name }}
+          *Details:* {{ failure_message }}
+          *Timestamp:* {{ execution_time }}
+          
+          Schema drift may impact downstream consumers. Review changes immediately.
+
+  - name: volume_anomaly_warning
+    description: Notify team of volume anomalies
+    monitors:
+      - monitor_sf_accounts_volume
+      - monitor_sf_contacts_volume
+      - monitor_sf_opportunities_volume
+      - monitor_int_accounts_volume
+      - monitor_int_opportunities_volume
+    severity: warn
+    notification_channels:
+      - type: slack
+        webhook_url: "{{ env_var('SLACK_WEBHOOK_MONITORING') }}"
+        channel: "#data-monitoring"
+        message_template: |
+          :bar_chart: *Volume Anomaly Detected*
+          *Monitor:* {{ monitor_name }}
+          *Model:* {{ model_name }}
+          *Severity:* {{ severity }}
+          *Details:* {{ failure_message }}
+          *Timestamp:* {{ execution_time }}
+          
+          Review for potential upstream pipeline issues.
+
+  - name: distribution_drift_warning
+    description: Alert analytics team to distribution drift
+    monitors:
+      - monitor_sf_accounts_distribution_drift
+      - monitor_sf_contacts_distribution_drift
+      - monitor_sf_opportunities_distribution_drift
+    severity: warn
+    notification_channels:
+      - type: slack
+        webhook_url: "{{ env_var('SLACK_WEBHOOK_ANALYTICS') }}"
+        channel: "#analytics-monitoring"
+        message_template: |
+          :chart_with_upwards_trend: *Distribution Drift Alert*
+          *Monitor:* {{ monitor_name }}
+          *Model:* {{ model_name }}
+          *Details:* {{ failure_message }}
+          *Timestamp:* {{ execution_time }}
+          
+          Data distribution has shifted beyond expected thresholds. Validate business logic.
+
+  - name: referential_integrity_breach
+    description: Critical alert for broken foreign key relationships
+    monitors:
+      - monitor_sf_contacts_schema_change
+      - monitor_sf_opportunities_schema_
