@@ -1,0 +1,168 @@
+version: 2
+
+models:
+  - name: dim_accounts
+    description: Business-ready account dimension with embedded relationship health metrics including opportunity counts, pipeline values, and contact counts for comprehensive account analysis
+    columns:
+      - name: account_id
+        description: Unique Salesforce Account identifier
+      - name: account_name
+        description: Legal or trading name of the company
+      - name: annual_revenue_usd
+        description: Stated annual revenue in US dollars
+      - name: employee_count
+        description: Total number of employees at the company
+      - name: industry
+        description: Industry classification for segmentation
+      - name: account_type
+        description: Account classification such as Customer or Prospect
+      - name: billing_city
+        description: City from the billing address
+      - name: billing_country
+        description: Country from the billing address
+      - name: website
+        description: Company website URL
+      - name: phone_number
+        description: Primary contact phone number for the account
+      - name: salesforce_owner_id
+        description: Salesforce User ID of the account owner
+      - name: total_opportunities
+        description: Total number of opportunities associated with this account
+      - name: open_opportunity_count
+        description: Count of currently open opportunities
+      - name: won_opportunity_count
+        description: Count of closed-won opportunities
+      - name: lost_opportunity_count
+        description: Count of closed-lost opportunities
+      - name: open_pipeline_value_usd
+        description: Total value in USD of all open opportunities
+      - name: lifetime_revenue_usd
+        description: Total revenue in USD from all won opportunities
+      - name: lost_revenue_usd
+        description: Total value in USD of all lost opportunities
+      - name: win_rate_percent
+        description: Win rate percentage calculated from closed opportunities
+      - name: total_contacts
+        description: Total number of contacts associated with this account
+      - name: account_created_date
+        description: Date when the account was created in Salesforce
+      - name: account_last_modified_date
+        description: Date when the account was last modified in Salesforce
+      - name: account_key
+        description: Surrogate key for dimensional modeling joins
+
+  - name: dim_contacts
+    description: Business-ready contact dimension enriched with account context for relationship mapping and stakeholder analysis
+    columns:
+      - name: contact_id
+        description: Unique Salesforce Contact identifier
+      - name: account_id
+        description: Associated account identifier
+      - name: account_name
+        description: Name of the associated company
+      - name: account_industry
+        description: Industry of the associated company
+      - name: account_country
+        description: Country of the associated company
+      - name: first_name
+        description: Contact first name
+      - name: last_name
+        description: Contact last name
+      - name: contact_full_name
+        description: Combined first and last name for display
+      - name: email_address
+        description: Primary email address for the contact
+      - name: phone_number
+        description: Primary phone number for the contact
+      - name: job_title
+        description: Current job title
+      - name: department
+        description: Department within the organization
+      - name: original_lead_source
+        description: Source where the lead originated
+      - name: mailing_city
+        description: City from the mailing address
+      - name: mailing_country
+        description: Country from the mailing address
+      - name: salesforce_owner_id
+        description: Salesforce User ID of the contact owner
+      - name: contact_created_date
+        description: Date when the contact was created in Salesforce
+      - name: contact_last_modified_date
+        description: Date when the contact was last modified in Salesforce
+      - name: contact_key
+        description: Surrogate key for dimensional modeling joins
+      - name: account_key
+        description: Surrogate key matching dim_accounts for joins
+
+  - name: dim_opportunities
+    description: Business-ready opportunity dimension enriched with account context for deal analysis and pipeline reporting
+    columns:
+      - name: opportunity_id
+        description: Unique Salesforce Opportunity identifier
+      - name: account_id
+        description: Associated account identifier
+      - name: account_name
+        description: Name of the associated company
+      - name: account_industry
+        description: Industry of the associated company
+      - name: account_type
+        description: Type classification of the associated account
+      - name: opportunity_name
+        description: Descriptive name of the sales opportunity
+      - name: opportunity_value_usd
+        description: Total deal value in US dollars
+      - name: weighted_value_usd
+        description: Deal value multiplied by win probability for forecasting
+      - name: current_stage
+        description: Current stage in the sales pipeline
+      - name: win_probability_percent
+        description: Percentage likelihood of winning this deal
+      - name: forecast_category
+        description: Forecast bucket classification
+      - name: opportunity_type
+        description: Type of deal such as New Business or Renewal
+      - name: original_lead_source
+        description: Source where the lead originated
+      - name: opportunity_status
+        description: Current status of Won, Lost, or Open
+      - name: is_closed
+        description: Flag indicating if the opportunity is closed
+      - name: is_won
+        description: Flag indicating if the opportunity was won
+      - name: is_lost
+        description: Flag indicating if the opportunity was lost
+      - name: is_open
+        description: Flag indicating if the opportunity is still open
+      - name: close_date
+        description: Actual or expected date of closure
+      - name: sales_cycle_days
+        description: Number of days from creation to close for closed deals
+      - name: close_month
+        description: Month of the close date for trending
+      - name: close_quarter
+        description: Quarter of the close date for trending
+      - name: close_year
+        description: Year of the close date for trending
+      - name: salesforce_owner_id
+        description: Salesforce User ID of the opportunity owner
+      - name: opportunity_created_date
+        description: Date when the opportunity was created in Salesforce
+      - name: opportunity_last_modified_date
+        description: Date when the opportunity was last modified in Salesforce
+      - name: opportunity_key
+        description: Surrogate key for dimensional modeling joins
+      - name: account_key
+        description: Surrogate key matching dim_accounts for joins
+
+  - name: fct_opportunities_daily
+    description: Daily aggregated metrics for opportunities by close date showing pipeline value, won revenue, and opportunity counts for trend analysis and historical reporting
+    columns:
+      - name: snapshot_date
+        description: Date for which metrics are aggregated
+      - name: total_opportunities
+        description: Total number of opportunities closing on this date
+      - name: open_opportunities
+        description: Count of opportunities that are still open
+      - name: won_opportunities
+        description: Count
