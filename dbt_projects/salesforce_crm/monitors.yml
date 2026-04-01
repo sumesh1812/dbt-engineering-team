@@ -1,0 +1,427 @@
+version: 2
+
+monitors:
+  - name: monitor_sf_accounts_volume
+    description: Monitor row count volume for SF_ACCOUNTS source table to detect unexpected drops or spikes in data ingestion
+    model: source('raw_salesforce', 'SF_ACCOUNTS')
+    type: volume
+    config:
+      severity: warn
+      comparison: absolute
+      warn_if: "<1000"
+      error_if: "<500"
+      dimensions:
+        - INDUSTRY
+        - TYPE
+
+  - name: monitor_sf_contacts_volume
+    description: Monitor row count volume for SF_CONTACTS source table to detect unexpected drops or spikes in data ingestion
+    model: source('raw_salesforce', 'SF_CONTACTS')
+    type: volume
+    config:
+      severity: warn
+      comparison: absolute
+      warn_if: "<2000"
+      error_if: "<1000"
+      dimensions:
+        - LEADSOURCE
+        - DEPARTMENT
+
+  - name: monitor_sf_opportunities_volume
+    description: Monitor row count volume for SF_OPPORTUNITIES source table to detect unexpected drops or spikes in data ingestion
+    model: source('raw_salesforce', 'SF_OPPORTUNITIES')
+    type: volume
+    config:
+      severity: warn
+      comparison: absolute
+      warn_if: "<500"
+      error_if: "<250"
+      dimensions:
+        - STAGENAME
+        - TYPE
+
+  - name: monitor_brz_accounts_volume
+    description: Monitor row count for bronze accounts layer to ensure consistent data flow from source to bronze
+    model: ref('brz_sf_accounts')
+    type: volume
+    config:
+      severity: error
+      comparison: percent_change
+      warn_if: ">10"
+      error_if: ">25"
+
+  - name: monitor_brz_contacts_volume
+    description: Monitor row count for bronze contacts layer to ensure consistent data flow from source to bronze
+    model: ref('brz_sf_contacts')
+    type: volume
+    config:
+      severity: error
+      comparison: percent_change
+      warn_if: ">10"
+      error_if: ">25"
+
+  - name: monitor_brz_opportunities_volume
+    description: Monitor row count for bronze opportunities layer to ensure consistent data flow from source to bronze
+    model: ref('brz_sf_opportunities')
+    type: volume
+    config:
+      severity: error
+      comparison: percent_change
+      warn_if: ">10"
+      error_if: ">25"
+
+  - name: monitor_slv_accounts_volume
+    description: Monitor row count for silver accounts layer to detect data quality issues or pipeline failures
+    model: ref('slv_accounts')
+    type: volume
+    config:
+      severity: error
+      comparison: percent_change
+      warn_if: ">15"
+      error_if: ">30"
+
+  - name: monitor_slv_contacts_volume
+    description: Monitor row count for silver contacts layer to detect data quality issues or pipeline failures
+    model: ref('slv_contacts')
+    type: volume
+    config:
+      severity: error
+      comparison: percent_change
+      warn_if: ">15"
+      error_if: ">30"
+
+  - name: monitor_slv_opportunities_volume
+    description: Monitor row count for silver opportunities layer to detect data quality issues or pipeline failures
+    model: ref('slv_opportunities')
+    type: volume
+    config:
+      severity: error
+      comparison: percent_change
+      warn_if: ">15"
+      error_if: ">30"
+
+  - name: monitor_dim_accounts_volume
+    description: Monitor row count for gold dimension accounts table to ensure mart consistency
+    model: ref('dim_accounts')
+    type: volume
+    config:
+      severity: warn
+      comparison: percent_change
+      warn_if: ">20"
+      error_if: ">40"
+
+  - name: monitor_dim_contacts_volume
+    description: Monitor row count for gold dimension contacts table to ensure mart consistency
+    model: ref('dim_contacts')
+    type: volume
+    config:
+      severity: warn
+      comparison: percent_change
+      warn_if: ">20"
+      error_if: ">40"
+
+  - name: monitor_fct_opportunities_volume
+    description: Monitor row count for gold fact opportunities table to ensure mart consistency
+    model: ref('fct_opportunities')
+    type: volume
+    config:
+      severity: warn
+      comparison: percent_change
+      warn_if: ">20"
+      error_if: ">40"
+
+  - name: monitor_sf_accounts_schema
+    description: Detect schema changes in SF_ACCOUNTS source table such as added or removed columns
+    model: source('raw_salesforce', 'SF_ACCOUNTS')
+    type: schema
+    config:
+      severity: error
+      on_schema_change: fail
+
+  - name: monitor_sf_contacts_schema
+    description: Detect schema changes in SF_CONTACTS source table such as added or removed columns
+    model: source('raw_salesforce', 'SF_CONTACTS')
+    type: schema
+    config:
+      severity: error
+      on_schema_change: fail
+
+  - name: monitor_sf_opportunities_schema
+    description: Detect schema changes in SF_OPPORTUNITIES source table such as added or removed columns
+    model: source('raw_salesforce', 'SF_OPPORTUNITIES')
+    type: schema
+    config:
+      severity: error
+      on_schema_change: fail
+
+  - name: monitor_slv_accounts_schema
+    description: Detect schema changes in silver accounts table to prevent downstream breakage
+    model: ref('slv_accounts')
+    type: schema
+    config:
+      severity: warn
+      on_schema_change: warn
+
+  - name: monitor_slv_contacts_schema
+    description: Detect schema changes in silver contacts table to prevent downstream breakage
+    model: ref('slv_contacts')
+    type: schema
+    config:
+      severity: warn
+      on_schema_change: warn
+
+  - name: monitor_slv_opportunities_schema
+    description: Detect schema changes in silver opportunities table to prevent downstream breakage
+    model: ref('slv_opportunities')
+    type: schema
+    config:
+      severity: warn
+      on_schema_change: warn
+
+  - name: monitor_dim_accounts_schema
+    description: Detect schema changes in gold dimension accounts table to ensure API and reporting compatibility
+    model: ref('dim_accounts')
+    type: schema
+    config:
+      severity: error
+      on_schema_change: fail
+
+  - name: monitor_dim_contacts_schema
+    description: Detect schema changes in gold dimension contacts table to ensure API and reporting compatibility
+    model: ref('dim_contacts')
+    type: schema
+    config:
+      severity: error
+      on_schema_change: fail
+
+  - name: monitor_fct_opportunities_schema
+    description: Detect schema changes in gold fact opportunities table to ensure API and reporting compatibility
+    model: ref('fct_opportunities')
+    type: schema
+    config:
+      severity: error
+      on_schema_change: fail
+
+  - name: monitor_opportunities_amount_distribution
+    description: Monitor distribution drift in opportunity amounts to detect anomalies in deal sizes or data corruption
+    model: ref('slv_opportunities')
+    type: distribution
+    config:
+      severity: warn
+      column: amount
+      distribution_type: numeric
+      warn_if_stddev_shift: ">2"
+      error_if_stddev_shift: ">3"
+
+  - name: monitor_accounts_revenue_distribution
+    description: Monitor distribution drift in account annual revenue to detect data quality issues
+    model: ref('slv_accounts')
+    type: distribution
+    config:
+      severity: warn
+      column: annual_revenue
+      distribution_type: numeric
+      warn_if_stddev_shift: ">2"
+      error_if_stddev_shift: ">3"
+
+  - name: monitor_opportunities_probability_distribution
+    description: Monitor distribution of win probability to detect sales process changes or forecasting issues
+    model: ref('slv_opportunities')
+    type: distribution
+    config:
+      severity: warn
+      column: probability
+      distribution_type: numeric
+      warn_if_stddev_shift: ">1.5"
+      error_if_stddev_shift: ">2.5"
+
+  - name: monitor_opportunities_stage_distribution
+    description: Monitor categorical distribution of opportunity stages to detect pipeline anomalies
+    model: ref('slv_opportunities')
+    type: distribution
+    config:
+      severity: warn
+      column: stage_name
+      distribution_type: categorical
+      warn_if_category_shift: ">15"
+      error_if_category_shift: ">30"
+
+  - name: monitor_accounts_industry_distribution
+    description: Monitor categorical distribution of account industries to detect segmentation drift
+    model: ref('slv_accounts')
+    type: distribution
+    config:
+      severity: warn
+      column: industry
+      distribution_type: categorical
+      warn_if_category_shift: ">20"
+      error_if_category_shift: ">40"
+
+  - name: monitor_contacts_leadsource_distribution
+    description: Monitor categorical distribution of contact lead sources to detect marketing channel changes
+    model: ref('slv_contacts')
+    type: distribution
+    config:
+      severity: warn
+      column: lead_source
+      distribution_type: categorical
+      warn_if_category_shift: ">25"
+      error_if_category_shift: ">50"
+
+  - name: monitor_null_rate_accounts_industry
+    description: Monitor null rate in account industry field to detect data quality degradation
+    model: ref('slv_accounts')
+    type: null_rate
+    config:
+      severity: warn
+      column: industry
+      warn_if: ">5"
+      error_if: ">15"
+
+  - name: monitor_null_rate_contacts_email
+    description: Monitor null rate in contact email field to detect data completeness issues
+    model: ref('slv_contacts')
+    type: null_rate
+    config:
+      severity: warn
+      column: email
+      warn_if: ">10"
+      error_if: ">25"
+
+  - name: monitor_null_rate_opportunities_amount
+    description: Monitor null rate in opportunity amount field to detect critical data quality issues
+    model: ref('slv_opportunities')
+    type: null_rate
+    config:
+      severity: error
+      column: amount
+      warn_if: ">2"
+      error_if: ">5"
+
+  - name: monitor_null_rate_opportunities_closedate
+    description: Monitor null rate in opportunity close date field to detect forecasting data issues
+    model: ref('slv_opportunities')
+    type: null_rate
+    config:
+      severity: warn
+      column: close_date
+      warn_if: ">3"
+      error_if: ">10"
+
+  - name: monitor_duplicate_accounts
+    description: Monitor for duplicate account IDs in silver accounts table indicating data quality regression
+    model: ref('slv_accounts')
+    type: uniqueness
+    config:
+      severity: error
+      column: account_id
+      error_if: "any_duplicates"
+
+  - name: monitor_duplicate_contacts
+    description: Monitor for duplicate contact IDs in silver contacts table indicating data quality regression
+    model: ref('slv_contacts')
+    type: uniqueness
+    config:
+      severity: error
+      column: contact_id
+      error_if: "any_duplicates"
+
+  - name: monitor_duplicate_opportunities
+    description: Monitor for duplicate opportunity IDs in silver opportunities table indicating data quality regression
+    model: ref('slv_opportunities')
+    type: uniqueness
+    config:
+      severity: error
+      column: opportunity_id
+      error_if: "any_duplicates"
+
+  - name: monitor_gold_accounts_row_count
+    description: Monitor gold accounts table row count to ensure dimension integrity
+    model: ref('dim_accounts')
+    type: volume
+    config:
+      severity: error
+      comparison: match_upstream
+      upstream_model: ref('slv_accounts')
+      tolerance_percent: 0
+
+  - name: monitor_gold_contacts_row_count
+    description: Monitor gold contacts table row count to ensure dimension integrity
+    model: ref('dim_contacts')
+    type: volume
+    config:
+      severity: error
+      comparison: match_upstream
+      upstream_model: ref('slv_contacts')
+      tolerance_percent: 0
+
+  - name: monitor_gold_opportunities_row_count
+    description: Monitor gold opportunities table row count to ensure fact integrity
+    model: ref('fct_opportunities')
+    type: volume
+    config:
+      severity: error
+      comparison: match_upstream
+      upstream_model: ref('slv_opportunities')
+      tolerance_percent: 0
+
+  - name: monitor_revenue_reconciliation
+    description: Monitor revenue reconciliation between opportunities and account summary to detect aggregation errors
+    model: ref('int_account_opportunity_summary')
+    type: reconciliation
+    config:
+      severity: error
+      metric: total_closed_won_value
+      compare_to: ref('slv_opportunities')
+      compare_metric: sum(amount) where is_won = true
+      tolerance_amount: 0.01
+
+  - name: monitor_pipeline_value_reconciliation
+    description: Monitor pipeline value reconciliation between opportunities and account summary to detect calculation drift
+    model: ref('int_account_opportunity_summary')
+    type: reconciliation
+    config:
+      severity: error
+      metric: total_pipeline_value
+      compare_to: ref('slv_opportunities')
+      compare_metric: sum(amount) where is_open = true
+      tolerance_amount: 0.01
+
+  - name: monitor_fct_pipeline_summary_freshness
+    description: Monitor data freshness of pipeline summary fact table to ensure timely executive reporting
+    model: ref('fct_pipeline_summary')
+    type: freshness
+    config:
+      severity: warn
+      warn_after:
+        count: 6
+        period: hour
+      error_after:
+        count: 12
+        period: hour
+
+  - name: monitor_fct_revenue_by_month_freshness
+    description: Monitor data freshness of monthly revenue fact table to ensure timely financial reporting
+    model: ref('fct_revenue_by_month')
+    type: freshness
+    config:
+      severity: warn
+      warn_after:
+        count: 12
+        period: hour
+      error_after:
+        count: 24
+        period: hour
+
+  - name: monitor_fct_owner_performance_freshness
+    description: Monitor data freshness of owner performance fact table to ensure timely sales performance reporting
+    model: ref('fct_owner_performance')
+    type: freshness
+    config:
+      severity: warn
+      warn_after:
+        count: 6
+        period: hour
+      error_after:
+        count: 12
+        period: hour
