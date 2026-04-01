@@ -1,0 +1,115 @@
+version: 2
+
+sources:
+  - name: raw_salesforce
+    description: Raw Salesforce CRM data extracted from Salesforce and loaded into Snowflake RAW schema
+    database: ANALYTICS
+    schema: RAW
+    freshness:
+      warn_after:
+        count: 24
+        period: hour
+      error_after:
+        count: 48
+        period: hour
+    loaded_at_field: LASTMODIFIEDDATE
+
+    tables:
+      - name: SF_ACCOUNTS
+        description: Salesforce Account objects representing companies and organizations
+        identifier: SF_ACCOUNTS
+        columns:
+          - name: ID
+            description: Salesforce Account ID serving as the primary key
+          - name: NAME
+            description: Account or company name
+          - name: INDUSTRY
+            description: Industry classification of the account
+          - name: TYPE
+            description: Account type such as Customer or Prospect
+          - name: OWNERID
+            description: Salesforce User ID of the account owner
+          - name: BILLINGCOUNTRY
+            description: Billing address country
+          - name: BILLINGCITY
+            description: Billing address city
+          - name: WEBSITE
+            description: Company website URL
+          - name: PHONE
+            description: Primary phone number for the account
+          - name: ANNUALREVENUE
+            description: Stated annual revenue of the company
+          - name: NUMBEROFEMPLOYEES
+            description: Number of employees at the company
+          - name: CREATEDDATE
+            description: Timestamp when the account record was created in Salesforce
+          - name: LASTMODIFIEDDATE
+            description: Timestamp when the account record was last modified
+
+      - name: SF_CONTACTS
+        description: Salesforce Contact objects representing individuals associated with accounts
+        identifier: SF_CONTACTS
+        columns:
+          - name: ID
+            description: Salesforce Contact ID serving as the primary key
+          - name: ACCOUNTID
+            description: Parent Account ID foreign key linking to SF_ACCOUNTS
+          - name: OWNERID
+            description: Salesforce User ID of the contact owner
+          - name: FIRSTNAME
+            description: First name of the contact
+          - name: LASTNAME
+            description: Last name of the contact
+          - name: EMAIL
+            description: Email address of the contact
+          - name: PHONE
+            description: Phone number of the contact
+          - name: TITLE
+            description: Job title of the contact
+          - name: DEPARTMENT
+            description: Department name where the contact works
+          - name: LEADSOURCE
+            description: Original lead source for this contact
+          - name: MAILINGCITY
+            description: Mailing address city
+          - name: MAILINGCOUNTRY
+            description: Mailing address country
+          - name: CREATEDDATE
+            description: Timestamp when the contact record was created in Salesforce
+          - name: LASTMODIFIEDDATE
+            description: Timestamp when the contact record was last modified
+
+      - name: SF_OPPORTUNITIES
+        description: Salesforce Opportunity objects representing sales deals and pipeline
+        identifier: SF_OPPORTUNITIES
+        columns:
+          - name: ID
+            description: Salesforce Opportunity ID serving as the primary key
+          - name: NAME
+            description: Name of the opportunity or deal
+          - name: ACCOUNTID
+            description: Parent Account ID foreign key linking to SF_ACCOUNTS
+          - name: OWNERID
+            description: Salesforce User ID of the opportunity owner
+          - name: AMOUNT
+            description: Deal value in currency
+          - name: STAGENAME
+            description: Current pipeline stage of the opportunity
+          - name: TYPE
+            description: Opportunity type such as New Business or Renewal
+          - name: PROBABILITY
+            description: Win probability percentage from 0 to 100
+          - name: FORECASTCATEGORY
+            description: Forecast category such as Pipeline or Best Case or Commit
+          - name: LEADSOURCE
+            description: Lead source attribution for the opportunity
+          - name: CLOSEDATE
+            description: Expected or actual close date for the opportunity
+          - name: ISCLOSED
+            description: Boolean flag indicating whether the opportunity is closed
+          - name: ISWON
+            description: Boolean flag indicating whether the opportunity was won
+          - name: CREATEDDATE
+            description: Timestamp when the opportunity record was created in Salesforce
+          - name: LASTMODIFIEDDATE
+            description: Timestamp when the opportunity record was last modified

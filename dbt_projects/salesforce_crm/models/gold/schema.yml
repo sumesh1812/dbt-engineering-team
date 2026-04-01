@@ -1,0 +1,213 @@
+version: 2
+models:
+  - name: dim_accounts_mart
+    description: Business-ready dimension table of accounts with pre-computed opportunity and contact metrics for executive dashboards
+    columns:
+      - name: account_id
+        description: Unique Salesforce Account identifier
+      - name: account_name
+        description: Name of the company or organization
+      - name: industry
+        description: Industry classification of the account
+      - name: account_type
+        description: Type of account such as Customer or Prospect
+      - name: owner_id
+        description: Sales representative responsible for this account
+      - name: billing_country
+        description: Country where the account is billed
+      - name: billing_city
+        description: City where the account is billed
+      - name: website
+        description: Company website URL
+      - name: phone
+        description: Primary phone number for the account
+      - name: annual_revenue_usd
+        description: Stated annual revenue in US dollars
+      - name: employee_count
+        description: Number of employees at the company
+      - name: total_contacts
+        description: Total number of contacts associated with this account
+      - name: total_opportunities
+        description: Total number of opportunities linked to this account
+      - name: open_opportunities
+        description: Number of opportunities still in progress
+      - name: pipeline_value_usd
+        description: Total dollar value of open opportunities
+      - name: won_revenue_usd
+        description: Total revenue from won opportunities in US dollars
+      - name: win_rate_pct
+        description: Percentage of closed opportunities that were won
+      - name: account_created_date
+        description: Date when the account was created in Salesforce
+      - name: account_last_modified_date
+        description: Date when the account was last updated
+
+  - name: dim_contacts_mart
+    description: Business-ready dimension table of contacts enriched with account information for relationship mapping
+    columns:
+      - name: contact_id
+        description: Unique Salesforce Contact identifier
+      - name: contact_name
+        description: Full name of the contact
+      - name: first_name
+        description: First name of the contact
+      - name: last_name
+        description: Last name of the contact
+      - name: email
+        description: Email address of the contact
+      - name: contact_phone
+        description: Phone number of the contact
+      - name: job_title
+        description: Job title of the contact
+      - name: department
+        description: Department where the contact works
+      - name: lead_source
+        description: Original source of this lead
+      - name: mailing_city
+        description: City from mailing address
+      - name: mailing_country
+        description: Country from mailing address
+      - name: account_id
+        description: Parent account identifier
+      - name: account_name
+        description: Name of the parent account
+      - name: account_industry
+        description: Industry of the parent account
+      - name: account_country
+        description: Country of the parent account
+      - name: owner_id
+        description: Sales representative responsible for this contact
+      - name: contact_created_date
+        description: Date when the contact was created in Salesforce
+      - name: contact_last_modified_date
+        description: Date when the contact was last updated
+
+  - name: fct_opportunities_mart
+    description: Business-ready fact table of sales opportunities enriched with account context for pipeline analysis
+    columns:
+      - name: opportunity_id
+        description: Unique Salesforce Opportunity identifier
+      - name: opportunity_name
+        description: Name of the deal or opportunity
+      - name: account_id
+        description: Parent account identifier
+      - name: account_name
+        description: Name of the parent account
+      - name: account_industry
+        description: Industry of the parent account
+      - name: owner_id
+        description: Sales representative responsible for this opportunity
+      - name: deal_amount_usd
+        description: Dollar value of the deal in US dollars
+      - name: stage_name
+        description: Current stage in the sales pipeline
+      - name: deal_type
+        description: Type of deal such as New Business or Renewal
+      - name: win_probability_pct
+        description: Estimated probability of winning this deal as a percentage
+      - name: forecast_category
+        description: Forecast category for revenue planning
+      - name: lead_source
+        description: Original source of this lead
+      - name: close_date
+        description: Expected or actual close date
+      - name: close_month
+        description: Month of the close date for monthly aggregation
+      - name: close_quarter
+        description: Quarter of the close date for quarterly aggregation
+      - name: close_year
+        description: Year of the close date for annual aggregation
+      - name: is_closed
+        description: Flag indicating whether the opportunity is closed
+      - name: is_won
+        description: Flag indicating whether the opportunity was won
+      - name: is_open
+        description: Flag indicating whether the opportunity is still open
+      - name: days_to_close
+        description: Number of days from creation to close date
+      - name: opportunity_status
+        description: Human-readable status as Won Lost or Open
+      - name: opportunity_created_date
+        description: Date when the opportunity was created in Salesforce
+      - name: opportunity_last_modified_date
+        description: Date when the opportunity was last updated
+
+  - name: fct_sales_pipeline_summary
+    description: Pre-aggregated summary of sales pipeline by stage quarter and deal type for executive reporting
+    columns:
+      - name: stage_name
+        description: Current stage in the sales pipeline
+      - name: close_quarter
+        description: Quarter when opportunities are expected to close
+      - name: deal_type
+        description: Type of deal such as New Business or Renewal
+      - name: opportunity_count
+        description: Total number of opportunities
+      - name: total_pipeline_value_usd
+        description: Total dollar value across all opportunities
+      - name: avg_deal_size_usd
+        description: Average dollar value per opportunity
+      - name: open_pipeline_usd
+        description: Total dollar value of opportunities still open
+      - name: won_revenue_usd
+        description: Total revenue from won opportunities
+      - name: lost_value_usd
+        description: Total value of opportunities that were lost
+      - name: open_count
+        description: Number of opportunities still open
+      - name: won_count
+        description: Number of opportunities that were won
+      - name: lost_count
+        description: Number of opportunities that were lost
+
+  - name: fct_revenue_by_account
+    description: Pre-aggregated revenue metrics by account for account health monitoring and territory planning
+    columns:
+      - name: account_id
+        description: Unique account identifier
+      - name: account_name
+        description: Name of the account
+      - name: industry
+        description: Industry classification of the account
+      - name: billing_country
+        description: Country where the account is located
+      - name: total_deal_count
+        description: Total number of deals associated with this account
+      - name: won_deal_count
+        description: Number of deals that were won
+      - name: open_deal_count
+        description: Number of deals still in progress
+      - name: total_value_usd
+        description: Total dollar value of all deals
+      - name: won_revenue_usd
+        description: Total revenue from won deals
+      - name: pipeline_value_usd
+        description: Total dollar value of open deals
+      - name: avg_won_deal_size_usd
+        description: Average dollar value of won deals
+      - name: avg_days_to_close
+        description: Average number of days to close a deal
+
+  - name: fct_monthly_sales_performance
+    description: Monthly aggregation of sales performance metrics for trending and forecasting analysis
+    columns:
+      - name: performance_month
+        description: Month of the performance data
+      - name: performance_year
+        description: Year of the performance data
+      - name: total_opportunities
+        description: Total number of opportunities in the month
+      - name: closed_opportunities
+        description: Number of opportunities closed in the month
+      - name: won_opportunities
+        description: Number of opportunities won in the month
+      - name: open_opportunities
+        description: Number of opportunities still open
+      - name: total_value_usd
+        description: Total dollar value of all opportunities
+      - name: won_revenue_usd
+        description: Total revenue from won opportunities
+      - name: pipeline_value_usd
+        description: Total dollar value of open opportunities
+      - name: avg_won_deal_size_usd
+        description: Average dollar

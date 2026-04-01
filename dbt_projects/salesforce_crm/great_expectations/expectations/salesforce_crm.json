@@ -1,0 +1,174 @@
+{
+  "data_asset_type": "Dataset",
+  "expectation_suite_name": "salesforce_crm",
+  "expectations": [
+    {
+      "expectation_type": "expect_table_row_count_to_be_between",
+      "kwargs": {
+        "min_value": 1
+      },
+      "meta": {
+        "model": "stg_sf_accounts"
+      }
+    },
+    {
+      "expectation_type": "expect_table_row_count_to_be_between",
+      "kwargs": {
+        "min_value": 1
+      },
+      "meta": {
+        "model": "stg_sf_contacts"
+      }
+    },
+    {
+      "expectation_type": "expect_table_row_count_to_be_between",
+      "kwargs": {
+        "min_value": 1
+      },
+      "meta": {
+        "model": "stg_sf_opportunities"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_unique",
+      "kwargs": {
+        "column": "account_id"
+      },
+      "meta": {
+        "model": "stg_sf_accounts"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_unique",
+      "kwargs": {
+        "column": "contact_id"
+      },
+      "meta": {
+        "model": "stg_sf_contacts"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_unique",
+      "kwargs": {
+        "column": "opportunity_id"
+      },
+      "meta": {
+        "model": "stg_sf_opportunities"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "account_id"
+      },
+      "meta": {
+        "model": "stg_sf_accounts"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "account_name"
+      },
+      "meta": {
+        "model": "stg_sf_accounts"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "contact_id"
+      },
+      "meta": {
+        "model": "stg_sf_contacts"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "last_name"
+      },
+      "meta": {
+        "model": "stg_sf_contacts"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "opportunity_id"
+      },
+      "meta": {
+        "model": "stg_sf_opportunities"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "opportunity_name"
+      },
+      "meta": {
+        "model": "stg_sf_opportunities"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "amount"
+      },
+      "meta": {
+        "model": "stg_sf_opportunities"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "amount",
+        "min_value": 0
+      },
+      "meta": {
+        "model": "stg_sf_opportunities"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "probability",
+        "min_value": 0,
+        "max_value": 100
+      },
+      "meta": {
+        "model": "stg_sf_opportunities"
+      }
+    },
+    {
+      "expectation_type": "expect_table_row_count_to_be_between",
+      "kwargs": {
+        "min_value": 1
+      },
+      "meta": {
+        "model": "dim_accounts"
+      }
+    },
+    {
+      "expectation_type": "expect_table_row_count_to_be_between",
+      "kwargs": {
+        "min_value": 1
+      },
+      "meta": {
+        "model": "dim_contacts"
+      }
+    },
+    {
+      "expectation_type": "expect_table_row_count_to_be_between",
+      "kwargs": {
+        "min_value": 1
+      },
+      "meta": {
+        "model": "fct_opportunities"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_unique",
+      "kwargs": {
+        "column": "account_key"
+      },

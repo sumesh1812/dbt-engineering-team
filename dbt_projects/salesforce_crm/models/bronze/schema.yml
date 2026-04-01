@@ -1,0 +1,238 @@
+version: 2
+models:
+- name: stg_sf_accounts
+  description: Staging model for Salesforce Account objects representing companies
+    and organizations. Applies consistent naming conventions and data type casting.
+    Serves as the foundation for downstream account analytics and is the single source
+    of truth for account master data.
+  columns:
+  - name: account_id
+    description: Salesforce Account ID serving as the primary business key. This 18-character
+      identifier is globally unique within the Salesforce org and is used for all
+      downstream joins and relationships.
+    tests:
+    - not_null
+    - unique
+  - name: account_name
+    description: Account or company name as stored in Salesforce. May contain inconsistent
+      capitalization, leading/trailing whitespace, or legacy naming conventions. Cleaned
+      in downstream silver models.
+    tests:
+    - not_null
+  - name: industry
+    description: Industry classification of the account from Salesforce picklist.
+      Values may include Technology, Financial Services, Healthcare, Manufacturing,
+      Retail, or null for unclassified accounts. Standardized to 'Unknown' in silver
+      layer.
+  - name: account_type
+    description: Account type classification such as Customer, Prospect, Partner,
+      or Competitor. This picklist field helps segment accounts by relationship stage
+      and business value. Null values are standardized downstream.
+  - name: owner_id
+    description: Salesforce User ID of the account owner, representing the sales representative
+      or account manager responsible for the relationship. Used for territory assignment
+      and quota tracking. References the User object in Salesforce.
+    tests:
+    - not_null
+  - name: billing_country
+    description: Billing address country field. Free text entry means values may be
+      inconsistent (e.g., 'USA', 'United States', 'US'). Standardized to uppercase
+      in silver layer for consistency.
+  - name: billing_city
+    description: Billing address city from the account record. Free text field with
+      no validation, may contain spelling variations or be null. Used for geographic
+      segmentation and territory planning.
+  - name: website
+    description: Company website URL. May be improperly formatted (missing http://,
+      trailing slashes) or null. Used for enrichment and account research. Empty strings
+      converted to null in silver layer.
+  - name: phone
+    description: Primary phone number for the account. No standardized format means
+      values vary widely (international format, extensions, punctuation). Empty strings
+      converted to null in silver layer.
+  - name: annual_revenue
+    description: Stated or estimated annual revenue of the company in US dollars.
+      Self-reported field that may be null, outdated, or inaccurate. Used for account
+      segmentation and prioritization scoring.
+  - name: number_of_employees
+    description: Number of employees at the company. Self-reported integer field used
+      for company size segmentation and ideal customer profile matching. May be null
+      or estimated.
+  - name: created_at
+    description: Timestamp with timezone when the account record was created in Salesforce.
+      Reflects when the account entered the CRM system, not necessarily when the business
+      relationship began. Used for cohort analysis and data quality monitoring.
+    tests:
+    - not_null
+  - name: updated_at
+    description: Timestamp with timezone when the account record was last modified
+      in Salesforce. Updated by workflow rules, user edits, or API integrations. Used
+      for incremental loading and change data capture.
+    tests:
+    - not_null
+- name: stg_sf_contacts
+  description: Staging model for Salesforce Contact objects representing individuals
+    associated with accounts. Applies consistent naming conventions and data type
+    transformations. Critical for relationship mapping, email marketing, and multi-threading
+    sales strategies.
+  columns:
+  - name: contact_id
+    description: Salesforce Contact ID serving as the primary business key. This 18-character
+      identifier is globally unique within the Salesforce org and is the authoritative
+      identifier for all contact-related analytics.
+    tests:
+    - not_null
+    - unique
+  - name: account_id
+    description: Parent Account ID foreign key linking this contact to their company
+      or organization. May be null for person accounts or orphaned contacts. Used
+      to join contact data with account hierarchies and opportunity relationships.
+  - name: owner_id
+    description: Salesforce User ID of the contact owner, typically the sales development
+      rep or account executive responsible for the relationship. Used for lead routing
+      and activity tracking.
+    tests:
+    - not_null
+  - name: first_name
+    description: First name of the contact. Optional field in Salesforce, may be null
+      especially for role-based contacts like 'IT Department'. Concatenated with last_name
+      in silver layer to create full_name.
+  - name: last_name
+    description: Last name of the contact. Required in Salesforce but may contain
+      placeholder values like 'Unknown' or 'TBD' when only role information is available.
+      Used for personalization and deduplication.
+    tests:
+    - not_null
+  - name: email
+    description: Email address of the contact. Critical field for marketing automation
+      and outreach. Salesforce allows duplicate emails across contacts, creating potential
+      data quality issues. Empty strings converted to null in silver layer.
+  - name: phone
+    description: Phone number of the contact. No standardized format, may include
+      extensions or international dialing codes. Used for sales outreach and data
+      enrichment. Empty strings converted to null in silver layer.
+  - name: title
+    description: Job title of the contact such as 'VP of Sales' or 'IT Director'.
+      Free text field with high variability, requires normalization for role-based
+      segmentation and buying committee analysis. Empty strings converted to null
+      in silver layer.
+  - name: department
+    description: Department name where the contact works, such as Engineering, Marketing,
+      Finance, or Operations. Free text field with inconsistent naming, useful for
+      org chart mapping and decision maker identification.
+  - name: lead_source
+    description: Original lead source for this contact, tracking attribution for marketing
+      campaigns. Picklist or free text values may include 'Web Form', 'Trade Show',
+      'Referral', 'Purchased List'. Standardized to 'Unknown' when null in silver
+      layer.
+  - name: mailing_city
+    description: Mailing address city for the contact. May differ from account billing
+      address. Free text field used for event invitations and regional campaign targeting.
+      Empty strings converted to null in silver layer.
+  - name: mailing_country
+    description: Mailing address country for the contact. Free text entry leads to
+      inconsistent values (e.g., 'UK' vs 'United Kingdom'). Standardized to uppercase
+      in silver layer for geographic analysis.
+  - name: created_at
+    description: Timestamp with timezone when the contact record was created in Salesforce.
+      Represents when the individual was added to the CRM, important for lead aging
+      and response time analysis.
+    tests:
+    - not_null
+  - name: updated_at
+    description: Timestamp with timezone when the contact record was last modified.
+      Updated by enrichment tools, user activity, or marketing automation. Used for
+      engagement scoring and data freshness monitoring.
+    tests:
+    - not_null
+- name: stg_sf_opportunities
+  description: Staging model for Salesforce Opportunity objects representing sales
+    deals and pipeline. The core transactional entity for revenue analytics, forecasting,
+    and sales performance measurement. Every opportunity must link to an account and
+    owner.
+  columns:
+  - name: opportunity_id
+    description: Salesforce Opportunity ID serving as the primary business key. This
+      18-character identifier uniquely identifies each sales deal and is used for
+      all revenue attribution and pipeline tracking.
+    tests:
+    - not_null
+    - unique
+  - name: opportunity_name
+    description: Name of the opportunity or deal, typically following a naming convention
+      like 'Acme Corp - Enterprise License - 2024'. Used for pipeline reports and
+      deal identification. Should be descriptive enough to distinguish similar deals
+      at the same account.
+    tests:
+    - not_null
+  - name: account_id
+    description: Parent Account ID foreign key linking the opportunity to the customer
+      or prospect company. Required for most opportunity types, used to aggregate
+      revenue by account and calculate customer lifetime value.
+  - name: owner_id
+    description: Salesforce User ID of the opportunity owner, the sales representative
+      responsible for closing the deal. Used for quota assignment, commission calculation,
+      and territory reporting. May change during deal lifecycle through deal transfers.
+    tests:
+    - not_null
+  - name: amount
+    description: Total deal value in the account's currency, typically USD. Core metric
+      for pipeline value, revenue forecasting, and deal size analysis. May be null
+      for early-stage opportunities before commercial discussions.
+  - name: stage_name
+    description: Current pipeline stage of the opportunity, reflecting progress through
+      the sales methodology. Standard stages might include Prospecting, Qualification,
+      Proposal, Negotiation, Closed Won, Closed Lost. Each stage has an associated
+      probability.
+    tests:
+    - not_null
+  - name: opportunity_type
+    description: Opportunity type classification such as 'New Business', 'Existing
+      Customer - Upgrade', 'Existing Customer - Renewal', or 'Existing Customer -
+      Downgrade'. Used for segmenting pipeline by deal motion and calculating net
+      new revenue versus expansion.
+  - name: probability
+    description: Win probability percentage from 0 to 100, representing the likelihood
+      of closing the deal. Often auto-populated based on stage mapping but can be
+      manually overridden. Used for weighted pipeline forecasting and risk assessment.
+  - name: forecast_category
+    description: Forecast category for pipeline management and commit tracking. Standard
+      values include 'Pipeline' (early stage), 'Best Case' (possible), 'Commit' (high
+      confidence), 'Closed' (won or lost), and 'Omitted' (excluded from forecast).
+      Critical for sales operations and executive reporting.
+  - name: lead_source
+    description: Original lead source attribution for the opportunity, tracking marketing
+      channel or campaign effectiveness. Values may include 'Inbound Web', 'Paid Search',
+      'Partner Referral', 'SDR Prospecting'. Used for CAC calculation and marketing
+      ROI.
+  - name: close_date
+    description: Expected or actual close date for the opportunity. Required field
+      that represents when the deal is projected to close (for open opps) or when
+      it actually closed (for won/lost opps). Used for time-series revenue forecasting
+      and sales cycle analysis.
+    tests:
+    - not_null
+  - name: is_closed
+    description: Boolean flag indicating whether the opportunity is in a closed stage
+      (either won or lost). Automatically set by Salesforce based on stage configuration.
+      Used to filter active pipeline from historical results.
+    tests:
+    - not_null
+  - name: is_won
+    description: Boolean flag indicating whether the opportunity was closed and won,
+      representing booked revenue. Only true when stage is 'Closed Won'. Used for
+      win rate calculation and revenue recognition.
+    tests:
+    - not_null
+  - name: created_at
+    description: Timestamp with timezone when the opportunity record was created in
+      Salesforce. Represents when the deal entered the pipeline, critical for sales
+      cycle length calculation and opportunity aging analysis.
+    tests:
+    - not_null
+  - name: updated_at
+    description: Timestamp with timezone when the opportunity record was last modified.
+      Changes may reflect stage progression, amount adjustments, or close date shifts.
+      Used for pipeline velocity tracking and deal activity monitoring.
+    tests:
+    - not_null
