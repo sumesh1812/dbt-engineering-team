@@ -1,0 +1,32 @@
+config-version: 2
+
+name: salesforce_crm
+version: '1.0.0'
+
+profile: salesforce_crm
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  salesforce_crm:
+    bronze:
+      +materialized: view
+      +schema: bronze
+      +tags: ['bronze']
+    silver:
+      +materialized: table
+      +schema: silver
+      +tags: ['silver']
+    gold:
+      +materialized: table
+      +schema: gold
+      +tags: ['gold']
