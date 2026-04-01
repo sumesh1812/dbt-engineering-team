@@ -1,0 +1,121 @@
+version: 2
+
+models:
+  - name: int_accounts
+    description: Cleansed and standardized account dimension with trimmed text fields, NULL handling for numeric columns, and generated surrogate keys for dimensional modeling
+    columns:
+      - name: account_id
+        description: Salesforce Account ID serving as natural business key for joining to other CRM objects
+        tests:
+          - not_null
+          - unique
+      - name: account_name
+        description: Trimmed legal or trading name of the account with leading and trailing whitespace removed
+        tests:
+          - not_null
+      - name: annual_revenue
+        description: Annual revenue in USD with NULL values coalesced to zero for consistent aggregation, use with caution as zero may represent unknown
+        tests:
+          - not_null
+      - name: number_of_employees
+        description: Employee headcount with NULL values coalesced to zero, use with caution as zero may represent unknown
+        tests:
+          - not_null
+      - name: industry
+        description: Standardized industry classification converted to uppercase for consistent grouping and filtering
+      - name: account_type
+        description: Trimmed account type classification such as Customer, Prospect, Partner
+      - name: billing_city
+        description: Trimmed billing address city with whitespace removed
+      - name: billing_country
+        description: Trimmed billing address country, ready for standardization to ISO codes in gold layer
+      - name: owner_id
+        description: Salesforce User ID of account owner, used to join to user dimension for territory and quota assignment
+      - name: website
+        description: Normalized website URL converted to lowercase for consistent matching and deduplication
+      - name: phone
+        description: Primary phone number for the account, format not standardized
+      - name: created_at
+        description: Record creation timestamp from Salesforce, preserved from source without transformation
+        tests:
+          - not_null
+      - name: updated_at
+        description: Last modification timestamp from Salesforce, used for incremental processing and change detection
+        tests:
+          - not_null
+      - name: account_key
+        description: MD5 hash surrogate key generated from account_id for use as dimension key in star schema fact tables
+        tests:
+          - not_null
+          - unique
+
+  - name: int_contacts
+    description: Cleansed and standardized contact dimension with constructed full name field, normalized email addresses, and generated surrogate keys for relationship mapping
+    columns:
+      - name: contact_id
+        description: Salesforce Contact ID serving as natural business key for joining to campaign and activity objects
+        tests:
+          - not_null
+          - unique
+      - name: account_id
+        description: Foreign key to int_accounts establishing contact-to-account relationship, NULL for person accounts
+        tests:
+          - relationships:
+              to: ref('int_accounts')
+              field: account_id
+              config:
+                where: "account_id is not null"
+      - name: first_name
+        description: Trimmed first name of the contact with whitespace removed, may be NULL
+      - name: last_name
+        description: Trimmed last name of the contact, always populated per Salesforce requirement
+        tests:
+          - not_null
+      - name: full_name
+        description: Combined display name constructed from first and last name with proper spacing, handles NULL first names gracefully
+        tests:
+          - not_null
+      - name: email
+        description: Normalized email address converted to lowercase for consistent matching and deduplication across marketing platforms
+      - name: phone
+        description: Primary phone number for the contact, format not standardized
+      - name: title
+        description: Trimmed job title with whitespace removed, used for persona segmentation
+      - name: department
+        description: Trimmed department name, used for stakeholder mapping and buying center analysis
+      - name: lead_source
+        description: Trimmed original lead source value, used for marketing channel attribution and ROI analysis
+      - name: mailing_city
+        description: Trimmed mailing address city with whitespace removed
+      - name: mailing_country
+        description: Trimmed mailing address country, used for regional analysis
+      - name: owner_id
+        description: Salesforce User ID of contact owner, used to join to user dimension for activity assignment
+      - name: created_at
+        description: Record creation timestamp from Salesforce, used for lead age and velocity calculations
+        tests:
+          - not_null
+      - name: updated_at
+        description: Last modification timestamp from Salesforce, used for engagement recency scoring
+        tests:
+          - not_null
+      - name: contact_key
+        description: MD5 hash surrogate key generated from contact_id for use in fact tables and bridge tables
+        tests:
+          - not_null
+          - unique
+      - name: account_key
+        description: MD5 hash surrogate key matching int_accounts.account_key for efficient star schema joins
+        tests:
+          - not_null:
+              config:
+                where: "account_id is not null"
+
+  - name: int_opportunities
+    description: Enriched opportunity fact table with derived sales metrics including weighted amounts, status flags, sales cycle calculations, and temporal dimensions for comprehensive pipeline analysis
+    columns:
+      - name: opportunity_id
+        description: Salesforce Opportunity ID serving as natural business key for joining to line items and quotes
+        tests:
+          - not_null
+          -
