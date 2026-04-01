@@ -1,0 +1,188 @@
+version: 2
+models:
+- name: stg_sf__accounts
+  description: Staging model for Salesforce accounts containing master data for customer
+    and prospect organizations with standardized column naming and typing for downstream
+    consumption
+  columns:
+  - name: account_id
+    description: Salesforce 18-character Account ID serving as the natural primary
+      key, uniquely identifies each account record across the platform
+    tests:
+    - not_null
+    - unique
+  - name: account_name
+    description: Legal or trading name of the account organization as maintained by
+      sales team, used for reporting and customer communication
+    tests:
+    - not_null
+  - name: annual_revenue
+    description: Stated or estimated annual revenue of the account in USD, may contain
+      NULLs for accounts where revenue is unknown or not disclosed
+  - name: phone
+    description: Primary contact phone number for the account, format varies by country
+      and data entry practices
+  - name: number_of_employees
+    description: Total employee headcount for the organization, used for account segmentation
+      and territory planning
+  - name: billing_city
+    description: City component of the billing address, required for invoice generation
+      and sales tax calculation
+  - name: billing_country
+    description: Country component of the billing address, standardized to ISO codes
+      in downstream models
+  - name: industry
+    description: Industry classification of the account requiring standardization
+      in silver layer, values from Salesforce picklist
+  - name: account_type
+    description: Account type classification such as Customer, Prospect, Partner,
+      or Competitor used for segmentation
+  - name: website
+    description: Company website URL, format varies and requires normalization in
+      downstream models
+  - name: owner_id
+    description: Salesforce User ID of the account owner responsible for relationship
+      management, references User object
+  - name: created_at
+    description: Timestamp when the account record was originally created in Salesforce,
+      used for cohort analysis
+    tests:
+    - not_null
+  - name: updated_at
+    description: Timestamp when the account record was last modified in Salesforce,
+      used for change detection
+    tests:
+    - not_null
+  - name: _loaded_at
+    description: dbt run timestamp indicating when this record was extracted and loaded
+      into the bronze layer, used for debugging data freshness
+    tests:
+    - not_null
+- name: stg_sf__contacts
+  description: Staging model for Salesforce contacts containing individual people
+    associated with accounts with standardized column naming and typing for downstream
+    consumption
+  columns:
+  - name: contact_id
+    description: Salesforce 18-character Contact ID serving as the natural primary
+      key, uniquely identifies each contact record
+    tests:
+    - not_null
+    - unique
+  - name: first_name
+    description: First name of the contact, may be NULL for contacts with only last
+      names entered
+  - name: last_name
+    description: Last name of the contact, required field in Salesforce for all contact
+      records
+    tests:
+    - not_null
+  - name: email
+    description: Primary email address for the contact, used for marketing campaigns
+      and communication tracking, may be NULL
+  - name: phone
+    description: Primary phone number for the contact, format varies by region
+  - name: title
+    description: Job title of the contact within their organization, used for stakeholder
+      mapping and persona analysis
+  - name: department
+    description: Department name where the contact works such as Engineering, Finance,
+      or Marketing
+  - name: account_id
+    description: Foreign key reference to stg_sf__accounts.account_id establishing
+      the relationship between contact and company
+  - name: mailing_city
+    description: City component of the mailing address for physical correspondence
+  - name: mailing_country
+    description: Country component of the mailing address, used for regional analysis
+  - name: lead_source
+    description: Original source of the lead that became this contact, values include
+      Web, Referral, Trade Show, Partner
+  - name: owner_id
+    description: Salesforce User ID of the contact owner responsible for relationship
+      management, references User object
+  - name: created_at
+    description: Timestamp when the contact record was originally created in Salesforce,
+      used for lead velocity analysis
+    tests:
+    - not_null
+  - name: updated_at
+    description: Timestamp when the contact record was last modified in Salesforce,
+      used for engagement scoring
+    tests:
+    - not_null
+  - name: _loaded_at
+    description: dbt run timestamp indicating when this record was extracted and loaded
+      into the bronze layer, used for debugging
+    tests:
+    - not_null
+- name: stg_sf__opportunities
+  description: Staging model for Salesforce opportunities containing sales deals and
+    pipeline records with standardized column naming and typing for revenue forecasting
+    and pipeline analysis
+  columns:
+  - name: opportunity_id
+    description: Salesforce 18-character Opportunity ID serving as the natural primary
+      key, uniquely identifies each deal
+    tests:
+    - not_null
+    - unique
+  - name: opportunity_name
+    description: Descriptive name or title of the opportunity deal, typically includes
+      account name and product
+    tests:
+    - not_null
+  - name: account_id
+    description: Foreign key reference to stg_sf__accounts.account_id linking the
+      opportunity to the customer account
+  - name: amount
+    description: Total contract or deal value in USD, may be NULL for early-stage
+      opportunities where pricing has not been determined
+  - name: stage_name
+    description: Current pipeline stage of the opportunity from configured sales process
+      stages
+    tests:
+    - not_null
+  - name: probability
+    description: Win probability percentage from 0 to 100, typically auto-populated
+      based on stage but can be manually adjusted
+  - name: forecast_category
+    description: Forecast classification bucket for the opportunity including Pipeline,
+      Best Case, Commit, Closed, and Omitted
+  - name: opportunity_type
+    description: Opportunity type classification such as New Business, Renewal, Upsell,
+      or Cross-sell
+  - name: lead_source
+    description: Original source of the lead that created this opportunity, used for
+      marketing attribution
+  - name: is_closed
+    description: Boolean flag indicating whether the opportunity has reached a closed
+      stage regardless of win or loss outcome
+    tests:
+    - not_null
+  - name: is_won
+    description: Boolean flag indicating whether the opportunity was closed-won, used
+      for revenue recognition
+    tests:
+    - not_null
+  - name: close_date
+    description: Actual close date for closed opportunities or expected close date
+      for open opportunities, required for forecasting
+  - name: owner_id
+    description: Salesforce User ID of the opportunity owner responsible for closing
+      the deal, references User object
+  - name: created_at
+    description: Timestamp when the opportunity record was originally created in Salesforce,
+      used for sales cycle analysis
+    tests:
+    - not_null
+  - name: updated_at
+    description: Timestamp when the opportunity record was last modified in Salesforce,
+      used for activity tracking
+    tests:
+    - not_null
+  - name: _loaded_at
+    description: dbt run timestamp indicating when this record was extracted and loaded
+      into the bronze layer, used for debugging
+    tests:
+    - not_null
