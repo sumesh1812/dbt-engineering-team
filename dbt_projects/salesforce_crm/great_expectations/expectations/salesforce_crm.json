@@ -1,0 +1,129 @@
+{
+  "data_asset_type": "Dataset",
+  "expectation_suite_name": "salesforce_crm",
+  "expectations": [
+    {
+      "expectation_type": "expect_table_row_count_to_be_between",
+      "kwargs": {
+        "min_value": 1,
+        "max_value": null
+      },
+      "meta": {
+        "description": "Accounts table must contain at least one row"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_unique",
+      "kwargs": {
+        "column": "account_id"
+      },
+      "meta": {
+        "description": "Account ID must be unique across all records"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "account_id"
+      },
+      "meta": {
+        "description": "Account ID is required and cannot be null"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "account_name"
+      },
+      "meta": {
+        "description": "Account name is required for all accounts"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "annual_revenue",
+        "min_value": 0,
+        "max_value": null,
+        "mostly": 1.0
+      },
+      "meta": {
+        "description": "Annual revenue must be non-negative when present"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "number_of_employees",
+        "min_value": 0,
+        "max_value": null,
+        "mostly": 1.0
+      },
+      "meta": {
+        "description": "Employee count must be non-negative when present"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_unique",
+      "kwargs": {
+        "column": "contact_id"
+      },
+      "meta": {
+        "description": "Contact ID must be unique across all records"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "contact_id"
+      },
+      "meta": {
+        "description": "Contact ID is required and cannot be null"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "last_name"
+      },
+      "meta": {
+        "description": "Last name is required for all contacts"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_unique",
+      "kwargs": {
+        "column": "opportunity_id"
+      },
+      "meta": {
+        "description": "Opportunity ID must be unique across all records"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "opportunity_id"
+      },
+      "meta": {
+        "description": "Opportunity ID is required and cannot be null"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "opportunity_name"
+      },
+      "meta": {
+        "description": "Opportunity name is required for all opportunities"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "amount",
+        "min_value": 0,
+        "max_value": null,
+        "mostly": 0.95
+      },
+      "meta": {
+        "description": "Opportunity amount should be non-
