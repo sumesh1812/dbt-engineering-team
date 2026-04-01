@@ -1,0 +1,240 @@
+version: 2
+
+models:
+  - name: slv_accounts
+    description: Clean business entity for Salesforce accounts with standardized values and null handling.
+    columns:
+      - name: account_id
+        description: Primary key for account records.
+        tests:
+          - not_null
+          - unique
+      - name: account_name
+        description: Account or company name defaulting to Unknown if null.
+        tests:
+          - not_null
+      - name: industry
+        description: Standardized uppercase industry classification defaulting to Unknown.
+      - name: account_type
+        description: Standardized uppercase account type defaulting to Unknown.
+      - name: billing_country
+        description: Standardized uppercase billing country.
+      - name: billing_city
+        description: Billing city trimmed of whitespace.
+      - name: phone
+        description: Primary phone number trimmed of whitespace.
+      - name: website
+        description: Lowercase website URL trimmed of whitespace.
+      - name: owner_id
+        description: Salesforce user ID of account owner.
+      - name: number_of_employees
+        description: Employee count defaulting to zero if null.
+        tests:
+          - not_null
+      - name: annual_revenue
+        description: Annual revenue defaulting to zero if null.
+        tests:
+          - not_null
+      - name: created_at
+        description: Record creation timestamp from Salesforce.
+        tests:
+          - not_null
+      - name: updated_at
+        description: Last modified timestamp from Salesforce.
+        tests:
+          - not_null
+      - name: _slv_loaded_at
+        description: Timestamp when record was loaded into silver layer.
+        tests:
+          - not_null
+
+  - name: slv_contacts
+    description: Clean business entity for Salesforce contacts with name standardization and null handling.
+    columns:
+      - name: contact_id
+        description: Primary key for contact records.
+        tests:
+          - not_null
+          - unique
+      - name: account_id
+        description: Foreign key to slv_accounts allowing null for orphan contacts.
+        tests:
+          - relationships:
+              to: ref('slv_accounts')
+              field: account_id
+              config:
+                where: "account_id is not null"
+      - name: first_name
+        description: Trimmed title-cased first name.
+      - name: last_name
+        description: Trimmed title-cased last name defaulting to Unknown.
+        tests:
+          - not_null
+      - name: full_name
+        description: Concatenated first and last name.
+        tests:
+          - not_null
+      - name: email
+        description: Lowercase trimmed email address.
+      - name: phone
+        description: Phone number trimmed of whitespace.
+      - name: title
+        description: Job title trimmed of whitespace.
+      - name: department
+        description: Uppercase department name trimmed of whitespace.
+      - name: mailing_city
+        description: Mailing city trimmed of whitespace.
+      - name: mailing_country
+        description: Uppercase mailing country trimmed of whitespace.
+      - name: owner_id
+        description: Salesforce user ID of contact owner.
+      - name: lead_source
+        description: Uppercase lead source defaulting to Unknown.
+        tests:
+          - not_null
+      - name: created_at
+        description: Record creation timestamp from Salesforce.
+        tests:
+          - not_null
+      - name: updated_at
+        description: Last modified timestamp from Salesforce.
+        tests:
+          - not_null
+      - name: _slv_loaded_at
+        description: Timestamp when record was loaded into silver layer.
+        tests:
+          - not_null
+
+  - name: slv_opportunities
+    description: Clean business entity for Salesforce opportunities with derived metrics and null handling.
+    columns:
+      - name: opportunity_id
+        description: Primary key for opportunity records.
+        tests:
+          - not_null
+          - unique
+      - name: opportunity_name
+        description: Opportunity name trimmed of whitespace.
+        tests:
+          - not_null
+      - name: account_id
+        description: Foreign key to slv_accounts allowing null values.
+        tests:
+          - relationships:
+              to: ref('slv_accounts')
+              field: account_id
+              config:
+                where: "account_id is not null"
+      - name: owner_id
+        description: Salesforce user ID of opportunity owner.
+      - name: opportunity_type
+        description: Uppercase opportunity type defaulting to Unknown.
+        tests:
+          - not_null
+      - name: stage_name
+        description: Current sales stage defaulting to Unknown.
+        tests:
+          - not_null
+      - name: forecast_category
+        description: Uppercase forecast category defaulting to Unknown.
+        tests:
+          - not_null
+      - name: amount
+        description: Deal amount defaulting to zero if null.
+        tests:
+          - not_null
+      - name: probability
+        description: Win probability constrained between zero and one hundred.
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
+      - name: close_date
+        description: Expected or actual close date for the opportunity.
+      - name: is_closed
+        description: Boolean flag indicating closed status.
+        tests:
+          - not_null
+      - name: is_won
+        description: Boolean flag indicating won status for closed opportunities.
+        tests:
+          - not_null
+      - name: is_open
+        description: Derived boolean flag indicating open status.
+        tests:
+          - not_null
+      - name: lead_source
+        description: Uppercase lead source defaulting to Unknown.
+        tests:
+          - not_null
+      - name: created_at
+        description: Record creation timestamp from Salesforce.
+        tests:
+          - not_null
+      - name: updated_at
+        description: Last modified timestamp from Salesforce.
+        tests:
+          - not_null
+      - name: days_to_close
+        description: Days from creation to close date for closed opportunities.
+      - name: close_month
+        description: Month truncated close date for time analysis.
+      - name: close_quarter
+        description: Quarter truncated close date for time analysis.
+      - name: _slv_loaded_at
+        description: Timestamp when record was loaded into silver layer.
+        tests:
+          - not_null
+
+  - name: int_account_opportunity_summary
+    description: Account-level opportunity aggregation for health analysis and win rate calculation.
+    columns:
+      - name: account_id
+        description: Primary key referencing slv_accounts.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('slv_accounts')
+              field: account_id
+      - name: total_opportunities
+        description: Total count of all opportunities for the account.
+        tests:
+          - not_null
+      - name: open_opportunities
+        description: Count of open opportunities for the account.
+        tests:
+          - not_null
+      - name: closed_won_opportunities
+        description: Count of closed won opportunities for the account.
+        tests:
+          - not_null
+      - name: closed_lost_opportunities
+        description: Count of closed lost opportunities for the account.
+        tests:
+          - not_null
+      - name: total_pipeline_value
+        description: Sum of amounts for all open opportunities.
+        tests:
+          - not_null
+      - name: total_closed_won_value
+        description: Sum of amounts for all won opportunities.
+        tests:
+          - not_null
+      - name: total_closed_lost_value
+        description: Sum of amounts for all closed lost opportunities.
+        tests:
+          - not_null
+      - name: account_win_rate
+        description: Win rate percentage calculated as closed won divided by total closed.
+      - name: avg_deal_size
+        description: Average deal amount for won opportunities.
+      - name: first_opportunity_date
+        description: Timestamp of earliest opportunity created for account.
+        tests:
+          - not_null
+      - name: last_opportunity_date
+        description: Timestamp of most recent opportunity created for account.
+        tests:
+          - not_null
