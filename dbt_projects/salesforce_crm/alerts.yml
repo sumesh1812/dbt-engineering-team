@@ -1,0 +1,38 @@
+version: 2
+
+alert_configs:
+  - name: critical_data_freshness_breach
+    description: Alert when critical tables exceed freshness SLA
+    filters:
+      severity: critical
+      monitor_type: freshness
+      status: error
+    channels:
+      - type: slack
+        webhook_url: "{{ env_var('SLACK_WEBHOOK_CRITICAL') }}"
+        message_template: |
+          :rotating_light: *CRITICAL DATA FRESHNESS BREACH* :rotating_light:
+          
+          *Model:* {{ model_name }}
+          *Monitor:* {{ monitor_name }}
+          *Status:* {{ status }}
+          *Freshness:* {{ hours_stale }} hours stale
+          *Threshold:* {{ error_threshold }} hours
+          *Owner:* {{ owner }}
+          
+          *Action Required:* Investigate source data pipeline immediately
+          *Runbook:* https://wiki.company.com/data/runbooks/freshness-breach
+      - type: pagerduty
+        integration_key: "{{ env_var('PAGERDUTY_INTEGRATION_KEY') }}"
+        severity: critical
+        dedup_key: "freshness_{{ model_name }}"
+
+  - name: critical_volume_anomaly
+    description: Alert when critical tables have zero rows or extreme drop
+    filters:
+      severity: critical
+      monitor_type: volume
+      status: error
+    channels:
+      - type: slack
+        webhook_url: "{{ env_var('SLACK_WEBHOOK_CRITICAL')
