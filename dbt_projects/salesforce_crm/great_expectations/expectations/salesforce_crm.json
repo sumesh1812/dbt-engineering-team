@@ -1,0 +1,144 @@
+{
+  "expectation_suite_name": "salesforce_crm",
+  "data_asset_type": "Dataset",
+  "expectations": [
+    {
+      "expectation_type": "expect_table_row_count_to_be_between",
+      "kwargs": {
+        "min_value": 1,
+        "max_value": null
+      },
+      "meta": {
+        "description": "Bronze accounts table should contain at least one record"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_unique",
+      "kwargs": {
+        "column": "account_id",
+        "result_format": "SUMMARY"
+      },
+      "meta": {
+        "description": "Account ID must be unique in bronze accounts"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "account_id",
+        "result_format": "SUMMARY"
+      },
+      "meta": {
+        "description": "Account ID cannot be null in bronze accounts"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "account_name",
+        "result_format": "SUMMARY"
+      },
+      "meta": {
+        "description": "Account name cannot be null in bronze accounts"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "owner_id",
+        "result_format": "SUMMARY"
+      },
+      "meta": {
+        "description": "Owner ID cannot be null in bronze accounts"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_of_type",
+      "kwargs": {
+        "column": "annual_revenue",
+        "type_": "DECIMAL"
+      },
+      "meta": {
+        "description": "Annual revenue must be numeric type"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_unique",
+      "kwargs": {
+        "column": "contact_id",
+        "result_format": "SUMMARY"
+      },
+      "meta": {
+        "description": "Contact ID must be unique in bronze contacts"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "contact_id",
+        "result_format": "SUMMARY"
+      },
+      "meta": {
+        "description": "Contact ID cannot be null in bronze contacts"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "last_name",
+        "result_format": "SUMMARY"
+      },
+      "meta": {
+        "description": "Last name cannot be null in bronze contacts"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_unique",
+      "kwargs": {
+        "column": "opportunity_id",
+        "result_format": "SUMMARY"
+      },
+      "meta": {
+        "description": "Opportunity ID must be unique in bronze opportunities"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "opportunity_id",
+        "result_format": "SUMMARY"
+      },
+      "meta": {
+        "description": "Opportunity ID cannot be null in bronze opportunities"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "opportunity_name",
+        "result_format": "SUMMARY"
+      },
+      "meta": {
+        "description": "Opportunity name cannot be null in bronze opportunities"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "amount",
+        "result_format": "SUMMARY"
+      },
+      "meta": {
+        "description": "Opportunity amount cannot be null in bronze opportunities"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "amount",
+        "min_value": 0,
+        "max_value": null,
+        "result_format": "SUMMARY"
+      },
+      "meta": {
+        "description": "Opportunity amount must be non-negative"
