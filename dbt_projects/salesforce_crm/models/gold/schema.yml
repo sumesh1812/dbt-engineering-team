@@ -1,0 +1,146 @@
+version: 2
+
+models:
+  - name: dim_accounts
+    description: Dimension table for accounts enriched with opportunity and contact metrics for account health analysis and executive reporting. One row per account with pre-computed aggregations.
+    columns:
+      - name: account_id
+        description: Unique identifier for the account record.
+      - name: account_name
+        description: Name of the account or company.
+      - name: industry
+        description: Industry classification for the account.
+      - name: account_type
+        description: Type of account such as Customer or Prospect.
+      - name: billing_country
+        description: Country where the account is billed.
+      - name: billing_city
+        description: City where the account is billed.
+      - name: account_phone
+        description: Primary phone number for the account.
+      - name: website
+        description: Company website URL for the account.
+      - name: account_owner_id
+        description: Salesforce user ID of the account owner.
+      - name: employee_count
+        description: Number of employees at the account.
+      - name: annual_revenue_usd
+        description: Stated annual revenue for the account in USD.
+      - name: total_contacts
+        description: Total number of contacts associated with the account.
+      - name: total_opportunities
+        description: Total number of opportunities for the account.
+      - name: open_opportunities
+        description: Count of currently open opportunities for the account.
+      - name: closed_won_count
+        description: Count of opportunities that were closed and won.
+      - name: closed_lost_count
+        description: Count of opportunities that were closed and lost.
+      - name: pipeline_value_usd
+        description: Total dollar value of open opportunities in USD.
+      - name: closed_won_value_usd
+        description: Total dollar value of won opportunities in USD.
+      - name: closed_lost_value_usd
+        description: Total dollar value of lost opportunities in USD.
+      - name: win_rate_percent
+        description: Win rate percentage for closed opportunities at the account level.
+      - name: avg_deal_size_usd
+        description: Average deal size for won opportunities in USD.
+      - name: first_opportunity_date
+        description: Date of the first opportunity created for this account.
+      - name: last_opportunity_date
+        description: Date of the most recent opportunity created for this account.
+      - name: account_created_at
+        description: Timestamp when the account was created in Salesforce.
+      - name: account_updated_at
+        description: Timestamp when the account was last modified in Salesforce.
+
+  - name: dim_contacts
+    description: Dimension table for contacts enriched with parent account details for contact segmentation and lead analysis. One row per contact.
+    columns:
+      - name: contact_id
+        description: Unique identifier for the contact record.
+      - name: account_id
+        description: Foreign key to the associated account.
+      - name: account_name
+        description: Name of the parent account.
+      - name: account_industry
+        description: Industry classification of the parent account.
+      - name: account_country
+        description: Billing country of the parent account.
+      - name: first_name
+        description: First name of the contact.
+      - name: last_name
+        description: Last name of the contact.
+      - name: contact_full_name
+        description: Full name of the contact as first plus last name.
+      - name: contact_email
+        description: Email address of the contact.
+      - name: contact_phone
+        description: Phone number of the contact.
+      - name: job_title
+        description: Job title of the contact.
+      - name: department
+        description: Department the contact works in.
+      - name: mailing_city
+        description: Mailing city of the contact.
+      - name: mailing_country
+        description: Mailing country of the contact.
+      - name: contact_owner_id
+        description: Salesforce user ID of the contact owner.
+      - name: lead_source
+        description: Original lead source for the contact.
+      - name: contact_created_at
+        description: Timestamp when the contact was created in Salesforce.
+      - name: contact_updated_at
+        description: Timestamp when the contact was last modified in Salesforce.
+
+  - name: fct_opportunities
+    description: Fact table for all opportunities enriched with account attributes for opportunity analysis and sales forecasting. One row per opportunity.
+    columns:
+      - name: opportunity_id
+        description: Unique identifier for the opportunity record.
+      - name: opportunity_name
+        description: Name of the opportunity.
+      - name: account_id
+        description: Foreign key to the associated account.
+      - name: account_name
+        description: Name of the parent account.
+      - name: account_industry
+        description: Industry classification of the parent account.
+      - name: account_type
+        description: Type of the parent account.
+      - name: account_country
+        description: Billing country of the parent account.
+      - name: opportunity_owner_id
+        description: Salesforce user ID of the opportunity owner.
+      - name: opportunity_type
+        description: Type of opportunity such as New Business or Renewal.
+      - name: stage_name
+        description: Current sales stage of the opportunity.
+      - name: forecast_category
+        description: Forecast category such as Pipeline or Commit.
+      - name: opportunity_amount_usd
+        description: Deal amount for the opportunity in USD.
+      - name: win_probability_percent
+        description: Win probability percentage between zero and one hundred.
+      - name: close_date
+        description: Expected or actual close date for the opportunity.
+      - name: is_closed
+        description: Boolean flag indicating whether the opportunity is closed.
+      - name: is_won
+        description: Boolean flag indicating whether the closed opportunity was won.
+      - name: is_open
+        description: Boolean flag indicating whether the opportunity is still open.
+      - name: lead_source
+        description: Original lead source for the opportunity.
+      - name: days_to_close
+        description: Number of days from creation to close for closed opportunities.
+      - name: close_month
+        description: Month of the close date for time-based aggregations.
+      - name: close_quarter
+        description: Quarter of the close date for time-based aggregations.
+      - name: opportunity_created_at
+        description: Timestamp when the opportunity was created in Salesforce.
+      - name: opportunity_updated_at
+        description: ""
