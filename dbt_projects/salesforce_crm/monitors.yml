@@ -1,0 +1,509 @@
+version: 2
+
+monitors:
+  - name: stg_sf_accounts_volume
+    model: ref('stg_sf_accounts')
+    description: Monitor row count for staging accounts table
+    type: volume
+    config:
+      fail_threshold: 0
+      warn_threshold: 100
+    meta:
+      owner: data_engineering
+      severity: high
+
+  - name: stg_sf_accounts_freshness
+    model: ref('stg_sf_accounts')
+    description: Monitor data freshness for staging accounts
+    type: freshness
+    timestamp_column: updated_at
+    config:
+      warn_after:
+        count: 24
+        period: hour
+      error_after:
+        count: 48
+        period: hour
+    meta:
+      owner: data_engineering
+      severity: critical
+
+  - name: stg_sf_accounts_schema
+    model: ref('stg_sf_accounts')
+    description: Detect schema changes in staging accounts table
+    type: schema_change
+    config:
+      block_on_new_columns: false
+      block_on_removed_columns: true
+      block_on_type_changes: true
+    meta:
+      owner: data_engineering
+      severity: medium
+
+  - name: stg_sf_contacts_volume
+    model: ref('stg_sf_contacts')
+    description: Monitor row count for staging contacts table
+    type: volume
+    config:
+      fail_threshold: 0
+      warn_threshold: 100
+    meta:
+      owner: data_engineering
+      severity: high
+
+  - name: stg_sf_contacts_freshness
+    model: ref('stg_sf_contacts')
+    description: Monitor data freshness for staging contacts
+    type: freshness
+    timestamp_column: updated_at
+    config:
+      warn_after:
+        count: 24
+        period: hour
+      error_after:
+        count: 48
+        period: hour
+    meta:
+      owner: data_engineering
+      severity: critical
+
+  - name: stg_sf_contacts_schema
+    model: ref('stg_sf_contacts')
+    description: Detect schema changes in staging contacts table
+    type: schema_change
+    config:
+      block_on_new_columns: false
+      block_on_removed_columns: true
+      block_on_type_changes: true
+    meta:
+      owner: data_engineering
+      severity: medium
+
+  - name: stg_sf_opportunities_volume
+    model: ref('stg_sf_opportunities')
+    description: Monitor row count for staging opportunities table
+    type: volume
+    config:
+      fail_threshold: 0
+      warn_threshold: 50
+    meta:
+      owner: data_engineering
+      severity: high
+
+  - name: stg_sf_opportunities_freshness
+    model: ref('stg_sf_opportunities')
+    description: Monitor data freshness for staging opportunities
+    type: freshness
+    timestamp_column: updated_at
+    config:
+      warn_after:
+        count: 24
+        period: hour
+      error_after:
+        count: 48
+        period: hour
+    meta:
+      owner: data_engineering
+      severity: critical
+
+  - name: stg_sf_opportunities_schema
+    model: ref('stg_sf_opportunities')
+    description: Detect schema changes in staging opportunities table
+    type: schema_change
+    config:
+      block_on_new_columns: false
+      block_on_removed_columns: true
+      block_on_type_changes: true
+    meta:
+      owner: data_engineering
+      severity: medium
+
+  - name: stg_sf_opportunities_amount_distribution
+    model: ref('stg_sf_opportunities')
+    description: Monitor distribution drift in opportunity amounts
+    type: distribution
+    column: amount
+    config:
+      distribution_type: numeric
+      z_score_threshold: 3.0
+      min_sample_size: 100
+    meta:
+      owner: data_engineering
+      severity: medium
+
+  - name: dim_accounts_volume
+    model: ref('dim_accounts')
+    description: Monitor row count for accounts dimension table
+    type: volume
+    config:
+      fail_threshold: 0
+      warn_threshold: 100
+    meta:
+      owner: analytics_engineering
+      severity: high
+
+  - name: dim_accounts_freshness
+    model: ref('dim_accounts')
+    description: Monitor data freshness for accounts dimension
+    type: freshness
+    timestamp_column: updated_at
+    config:
+      warn_after:
+        count: 26
+        period: hour
+      error_after:
+        count: 50
+        period: hour
+    meta:
+      owner: analytics_engineering
+      severity: high
+
+  - name: dim_accounts_schema
+    model: ref('dim_accounts')
+    description: Detect schema changes in accounts dimension table
+    type: schema_change
+    config:
+      block_on_new_columns: false
+      block_on_removed_columns: true
+      block_on_type_changes: true
+    meta:
+      owner: analytics_engineering
+      severity: high
+
+  - name: dim_contacts_volume
+    model: ref('dim_contacts')
+    description: Monitor row count for contacts dimension table
+    type: volume
+    config:
+      fail_threshold: 0
+      warn_threshold: 100
+    meta:
+      owner: analytics_engineering
+      severity: high
+
+  - name: dim_contacts_freshness
+    model: ref('dim_contacts')
+    description: Monitor data freshness for contacts dimension
+    type: freshness
+    timestamp_column: updated_at
+    config:
+      warn_after:
+        count: 26
+        period: hour
+      error_after:
+        count: 50
+        period: hour
+    meta:
+      owner: analytics_engineering
+      severity: high
+
+  - name: dim_contacts_schema
+    model: ref('dim_contacts')
+    description: Detect schema changes in contacts dimension table
+    type: schema_change
+    config:
+      block_on_new_columns: false
+      block_on_removed_columns: true
+      block_on_type_changes: true
+    meta:
+      owner: analytics_engineering
+      severity: high
+
+  - name: fct_opportunities_volume
+    model: ref('fct_opportunities')
+    description: Monitor row count for opportunities fact table
+    type: volume
+    config:
+      fail_threshold: 0
+      warn_threshold: 50
+    meta:
+      owner: analytics_engineering
+      severity: critical
+
+  - name: fct_opportunities_freshness
+    model: ref('fct_opportunities')
+    description: Monitor data freshness for opportunities fact table
+    type: freshness
+    timestamp_column: updated_at
+    config:
+      warn_after:
+        count: 26
+        period: hour
+      error_after:
+        count: 50
+        period: hour
+    meta:
+      owner: analytics_engineering
+      severity: critical
+
+  - name: fct_opportunities_schema
+    model: ref('fct_opportunities')
+    description: Detect schema changes in opportunities fact table
+    type: schema_change
+    config:
+      block_on_new_columns: false
+      block_on_removed_columns: true
+      block_on_type_changes: true
+    meta:
+      owner: analytics_engineering
+      severity: critical
+
+  - name: fct_opportunities_amount_distribution
+    model: ref('fct_opportunities')
+    description: Monitor distribution drift in opportunity amounts
+    type: distribution
+    column: amount
+    config:
+      distribution_type: numeric
+      z_score_threshold: 3.0
+      min_sample_size: 100
+    meta:
+      owner: analytics_engineering
+      severity: medium
+
+  - name: fct_opportunities_probability_distribution
+    model: ref('fct_opportunities')
+    description: Monitor distribution drift in win probabilities
+    type: distribution
+    column: probability
+    config:
+      distribution_type: numeric
+      z_score_threshold: 2.5
+      min_sample_size: 100
+    meta:
+      owner: analytics_engineering
+      severity: low
+
+  - name: dim_accounts_mart_volume
+    model: ref('dim_accounts_mart')
+    description: Monitor row count for accounts mart
+    type: volume
+    config:
+      fail_threshold: 0
+      warn_threshold: 100
+    meta:
+      owner: business_intelligence
+      severity: critical
+
+  - name: dim_accounts_mart_freshness
+    model: ref('dim_accounts_mart')
+    description: Monitor data freshness for accounts mart
+    type: freshness
+    timestamp_column: account_last_modified_date
+    config:
+      warn_after:
+        count: 28
+        period: hour
+      error_after:
+        count: 52
+        period: hour
+    meta:
+      owner: business_intelligence
+      severity: critical
+
+  - name: dim_accounts_mart_schema
+    model: ref('dim_accounts_mart')
+    description: Detect schema changes in accounts mart
+    type: schema_change
+    config:
+      block_on_new_columns: false
+      block_on_removed_columns: true
+      block_on_type_changes: true
+    meta:
+      owner: business_intelligence
+      severity: critical
+
+  - name: dim_contacts_mart_volume
+    model: ref('dim_contacts_mart')
+    description: Monitor row count for contacts mart
+    type: volume
+    config:
+      fail_threshold: 0
+      warn_threshold: 100
+    meta:
+      owner: business_intelligence
+      severity: high
+
+  - name: dim_contacts_mart_freshness
+    model: ref('dim_contacts_mart')
+    description: Monitor data freshness for contacts mart
+    type: freshness
+    timestamp_column: contact_last_modified_date
+    config:
+      warn_after:
+        count: 28
+        period: hour
+      error_after:
+        count: 52
+        period: hour
+    meta:
+      owner: business_intelligence
+      severity: high
+
+  - name: dim_contacts_mart_schema
+    model: ref('dim_contacts_mart')
+    description: Detect schema changes in contacts mart
+    type: schema_change
+    config:
+      block_on_new_columns: false
+      block_on_removed_columns: true
+      block_on_type_changes: true
+    meta:
+      owner: business_intelligence
+      severity: high
+
+  - name: fct_opportunities_mart_volume
+    model: ref('fct_opportunities_mart')
+    description: Monitor row count for opportunities mart
+    type: volume
+    config:
+      fail_threshold: 0
+      warn_threshold: 50
+    meta:
+      owner: business_intelligence
+      severity: critical
+
+  - name: fct_opportunities_mart_freshness
+    model: ref('fct_opportunities_mart')
+    description: Monitor data freshness for opportunities mart
+    type: freshness
+    timestamp_column: opportunity_last_modified_date
+    config:
+      warn_after:
+        count: 28
+        period: hour
+      error_after:
+        count: 52
+        period: hour
+    meta:
+      owner: business_intelligence
+      severity: critical
+
+  - name: fct_opportunities_mart_schema
+    model: ref('fct_opportunities_mart')
+    description: Detect schema changes in opportunities mart
+    type: schema_change
+    config:
+      block_on_new_columns: false
+      block_on_removed_columns: true
+      block_on_type_changes: true
+    meta:
+      owner: business_intelligence
+      severity: critical
+
+  - name: fct_opportunities_mart_deal_amount_distribution
+    model: ref('fct_opportunities_mart')
+    description: Monitor distribution drift in deal amounts
+    type: distribution
+    column: deal_amount_usd
+    config:
+      distribution_type: numeric
+      z_score_threshold: 3.0
+      min_sample_size: 100
+    meta:
+      owner: business_intelligence
+      severity: medium
+
+  - name: fct_sales_pipeline_summary_volume
+    model: ref('fct_sales_pipeline_summary')
+    description: Monitor row count for sales pipeline summary
+    type: volume
+    config:
+      fail_threshold: 0
+      warn_threshold: 10
+    meta:
+      owner: business_intelligence
+      severity: critical
+
+  - name: fct_sales_pipeline_summary_schema
+    model: ref('fct_sales_pipeline_summary')
+    description: Detect schema changes in sales pipeline summary
+    type: schema_change
+    config:
+      block_on_new_columns: false
+      block_on_removed_columns: true
+      block_on_type_changes: true
+    meta:
+      owner: business_intelligence
+      severity: critical
+
+  - name: fct_revenue_by_account_volume
+    model: ref('fct_revenue_by_account')
+    description: Monitor row count for revenue by account
+    type: volume
+    config:
+      fail_threshold: 0
+      warn_threshold: 100
+    meta:
+      owner: business_intelligence
+      severity: critical
+
+  - name: fct_revenue_by_account_schema
+    model: ref('fct_revenue_by_account')
+    description: Detect schema changes in revenue by account
+    type: schema_change
+    config:
+      block_on_new_columns: false
+      block_on_removed_columns: true
+      block_on_type_changes: true
+    meta:
+      owner: business_intelligence
+      severity: critical
+
+  - name: fct_revenue_by_account_won_revenue_distribution
+    model: ref('fct_revenue_by_account')
+    description: Monitor distribution drift in won revenue by account
+    type: distribution
+    column: won_revenue_usd
+    config:
+      distribution_type: numeric
+      z_score_threshold: 3.5
+      min_sample_size: 50
+    meta:
+      owner: business_intelligence
+      severity: medium
+
+  - name: fct_monthly_sales_performance_volume
+    model: ref('fct_monthly_sales_performance')
+    description: Monitor row count for monthly sales performance
+    type: volume
+    config:
+      fail_threshold: 0
+      warn_threshold: 12
+    meta:
+      owner: business_intelligence
+      severity: critical
+
+  - name: fct_monthly_sales_performance_schema
+    model: ref('fct_monthly_sales_performance')
+    description: Detect schema changes in monthly sales performance
+    type: schema_change
+    config:
+      block_on_new_columns: false
+      block_on_removed_columns: true
+      block_on_type_changes: true
+    meta:
+      owner: business_intelligence
+      severity: critical
+
+  - name: int_account_opportunity_summary_volume
+    model: ref('int_account_opportunity_summary')
+    description: Monitor row count for account opportunity summary intermediate table
+    type: volume
+    config:
+      fail_threshold: 0
+      warn_threshold: 100
+    meta:
+      owner: analytics_engineering
+      severity: high
+
+  - name: int_account_contact_summary_volume
+    model: ref('int_account_contact_summary')
+    description: Monitor row count for account contact summary intermediate table
+    type: volume
+    config:
+      fail_threshold: 0
+      warn_threshold: 100
+    meta:
+      owner: analytics_engineering
+      severity: high
