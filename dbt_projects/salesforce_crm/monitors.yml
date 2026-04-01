@@ -1,0 +1,400 @@
+version: 2
+
+monitors:
+  - name: monitor_sf_accounts_volume
+    description: Detect anomalous row count changes in SF_ACCOUNTS table
+    model: ref('stg_sf__accounts')
+    config:
+      severity: warn
+      enabled: true
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "count(*) > 0"
+          config:
+            severity: error
+      - dbt_utils.expression_is_true:
+          expression: "count(*) > (select count(*) * 0.5 from {{ ref('stg_sf__accounts') }})"
+          config:
+            severity: warn
+            error_if: ">10"
+
+  - name: monitor_sf_accounts_freshness
+    description: Alert when SF_ACCOUNTS data exceeds freshness SLA
+    model: ref('stg_sf__accounts')
+    config:
+      severity: error
+      enabled: true
+    tests:
+      - dbt_utils.recency:
+          datepart: hour
+          field: updated_at
+          interval: 24
+          config:
+            severity: warn
+      - dbt_utils.recency:
+          datepart: hour
+          field: updated_at
+          interval: 48
+          config:
+            severity: error
+
+  - name: monitor_sf_accounts_schema_change
+    description: Detect unexpected schema changes in SF_ACCOUNTS
+    model: ref('stg_sf__accounts')
+    config:
+      severity: error
+      enabled: true
+    columns:
+      - name: account_id
+        tests:
+          - not_null
+          - unique
+      - name: account_name
+        tests:
+          - not_null
+      - name: annual_revenue
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: number
+      - name: number_of_employees
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: number
+
+  - name: monitor_sf_accounts_distribution_drift
+    description: Detect distribution drift in account annual revenue
+    model: ref('stg_sf__accounts')
+    config:
+      severity: warn
+      enabled: true
+    tests:
+      - dbt_expectations.expect_column_mean_to_be_between:
+          column_name: annual_revenue
+          min_value: 100000
+          max_value: 50000000
+          config:
+            severity: warn
+      - dbt_expectations.expect_column_quantile_values_to_be_between:
+          column_name: annual_revenue
+          quantile: 0.5
+          min_value: 500000
+          max_value: 10000000
+          config:
+            severity: warn
+
+  - name: monitor_sf_contacts_volume
+    description: Detect anomalous row count changes in SF_CONTACTS table
+    model: ref('stg_sf__contacts')
+    config:
+      severity: warn
+      enabled: true
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "count(*) > 0"
+          config:
+            severity: error
+      - dbt_utils.expression_is_true:
+          expression: "count(*) > (select count(*) * 0.5 from {{ ref('stg_sf__contacts') }})"
+          config:
+            severity: warn
+
+  - name: monitor_sf_contacts_freshness
+    description: Alert when SF_CONTACTS data exceeds freshness SLA
+    model: ref('stg_sf__contacts')
+    config:
+      severity: error
+      enabled: true
+    tests:
+      - dbt_utils.recency:
+          datepart: hour
+          field: updated_at
+          interval: 24
+          config:
+            severity: warn
+      - dbt_utils.recency:
+          datepart: hour
+          field: updated_at
+          interval: 48
+          config:
+            severity: error
+
+  - name: monitor_sf_contacts_schema_change
+    description: Detect unexpected schema changes in SF_CONTACTS
+    model: ref('stg_sf__contacts')
+    config:
+      severity: error
+      enabled: true
+    columns:
+      - name: contact_id
+        tests:
+          - not_null
+          - unique
+      - name: last_name
+        tests:
+          - not_null
+      - name: account_id
+        tests:
+          - relationships:
+              to: ref('stg_sf__accounts')
+              field: account_id
+
+  - name: monitor_sf_contacts_distribution_drift
+    description: Detect distribution drift in contact email presence
+    model: ref('stg_sf__contacts')
+    config:
+      severity: warn
+      enabled: true
+    tests:
+      - dbt_expectations.expect_column_values_to_not_be_null:
+          column_name: email
+          row_condition: "email is not null"
+          config:
+            severity: warn
+
+  - name: monitor_sf_opportunities_volume
+    description: Detect anomalous row count changes in SF_OPPORTUNITIES table
+    model: ref('stg_sf__opportunities')
+    config:
+      severity: warn
+      enabled: true
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "count(*) > 0"
+          config:
+            severity: error
+      - dbt_utils.expression_is_true:
+          expression: "count(*) > (select count(*) * 0.5 from {{ ref('stg_sf__opportunities') }})"
+          config:
+            severity: warn
+
+  - name: monitor_sf_opportunities_freshness
+    description: Alert when SF_OPPORTUNITIES data exceeds freshness SLA
+    model: ref('stg_sf__opportunities')
+    config:
+      severity: error
+      enabled: true
+    tests:
+      - dbt_utils.recency:
+          datepart: hour
+          field: updated_at
+          interval: 24
+          config:
+            severity: warn
+      - dbt_utils.recency:
+          datepart: hour
+          field: updated_at
+          interval: 48
+          config:
+            severity: error
+
+  - name: monitor_sf_opportunities_schema_change
+    description: Detect unexpected schema changes in SF_OPPORTUNITIES
+    model: ref('stg_sf__opportunities')
+    config:
+      severity: error
+      enabled: true
+    columns:
+      - name: opportunity_id
+        tests:
+          - not_null
+          - unique
+      - name: opportunity_name
+        tests:
+          - not_null
+      - name: account_id
+        tests:
+          - relationships:
+              to: ref('stg_sf__accounts')
+              field: account_id
+      - name: amount
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: number
+
+  - name: monitor_sf_opportunities_distribution_drift
+    description: Detect distribution drift in opportunity amounts
+    model: ref('stg_sf__opportunities')
+    config:
+      severity: warn
+      enabled: true
+    tests:
+      - dbt_expectations.expect_column_mean_to_be_between:
+          column_name: amount
+          min_value: 10000
+          max_value: 5000000
+          config:
+            severity: warn
+      - dbt_expectations.expect_column_quantile_values_to_be_between:
+          column_name: amount
+          quantile: 0.5
+          min_value: 25000
+          max_value: 500000
+          config:
+            severity: warn
+      - dbt_expectations.expect_column_values_to_be_between:
+          column_name: probability
+          min_value: 0
+          max_value: 100
+          config:
+            severity: error
+
+  - name: monitor_int_accounts_volume
+    description: Detect anomalous row count changes in intermediate accounts
+    model: ref('int_accounts')
+    config:
+      severity: warn
+      enabled: true
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "count(*) > 0"
+          config:
+            severity: error
+      - dbt_utils.equal_rowcount:
+          compare_model: ref('stg_sf__accounts')
+          config:
+            severity: error
+
+  - name: monitor_int_accounts_key_integrity
+    description: Ensure surrogate key uniqueness in intermediate accounts
+    model: ref('int_accounts')
+    config:
+      severity: error
+      enabled: true
+    columns:
+      - name: account_key
+        tests:
+          - not_null
+          - unique
+      - name: account_id
+        tests:
+          - not_null
+          - unique
+
+  - name: monitor_int_opportunities_volume
+    description: Detect anomalous row count changes in intermediate opportunities
+    model: ref('int_opportunities')
+    config:
+      severity: warn
+      enabled: true
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "count(*) > 0"
+          config:
+            severity: error
+      - dbt_utils.equal_rowcount:
+          compare_model: ref('stg_sf__opportunities')
+          config:
+            severity: error
+
+  - name: monitor_int_opportunities_revenue_integrity
+    description: Validate revenue calculations in intermediate opportunities
+    model: ref('int_opportunities')
+    config:
+      severity: error
+      enabled: true
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "amount >= 0"
+          config:
+            severity: error
+            where: "amount is not null"
+      - dbt_utils.expression_is_true:
+          expression: "weighted_amount = (amount * probability / 100)"
+          config:
+            severity: error
+            where: "amount is not null and probability is not null"
+
+  - name: monitor_dim_accounts_completeness
+    description: Monitor completeness of gold dimension accounts
+    model: ref('dim_accounts')
+    config:
+      severity: warn
+      enabled: true
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "count(*) > 0"
+          config:
+            severity: error
+      - dbt_expectations.expect_column_values_to_not_be_null:
+          column_name: account_id
+          config:
+            severity: error
+      - dbt_expectations.expect_column_values_to_not_be_null:
+          column_name: account_name
+          config:
+            severity: error
+
+  - name: monitor_dim_opportunities_completeness
+    description: Monitor completeness of gold dimension opportunities
+    model: ref('dim_opportunities')
+    config:
+      severity: warn
+      enabled: true
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "count(*) > 0"
+          config:
+            severity: error
+      - dbt_expectations.expect_column_values_to_not_be_null:
+          column_name: opportunity_id
+          config:
+            severity: error
+      - dbt_expectations.expect_column_values_to_not_be_null:
+          column_name: opportunity_name
+          config:
+            severity: error
+
+  - name: monitor_fct_revenue_by_month_volume
+    description: Monitor fact table grain and completeness
+    model: ref('fct_revenue_by_month')
+    config:
+      severity: warn
+      enabled: true
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "count(*) > 0"
+          config:
+            severity: error
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - revenue_month
+            - revenue_year
+            - industry
+          config:
+            severity: error
+
+  - name: monitor_fct_opportunities_daily_volume
+    description: Monitor daily opportunities fact grain
+    model: ref('fct_opportunities_daily')
+    config:
+      severity: warn
+      enabled: true
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "count(*) > 0"
+          config:
+            severity: error
+      - dbt_utils.expression_is_true:
+          expression: "snapshot_date is not null"
+          config:
+            severity: error
+
+  - name: monitor_pipeline_snapshot_freshness
+    description: Alert when pipeline snapshot is stale
+    model: ref('fct_pipeline_snapshot')
+    config:
+      severity: error
+      enabled: true
+    tests:
+      - dbt_utils.recency:
+          datepart: day
+          field: snapshot_date
+          interval: 1
+          config:
+            severity: warn
+      - dbt_utils.recency:
+          datepart: day
+          field: snapshot_date
+          interval: 3
+          config:
+            severity: error
